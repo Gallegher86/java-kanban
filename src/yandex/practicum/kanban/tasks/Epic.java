@@ -8,12 +8,26 @@ public class Epic extends Task {
         super(name, description);
     }
 
-    public void addSubTaskId(Integer id) {
+    public Epic(int id, String name, String description) {
+        super(id, name, description);
+    }
+
+    protected void addSubTaskId(int id) {
         subTaskIds.add(id);
     }
 
-    public ArrayList<Integer> getSubTaskIdList() {
+    protected ArrayList<Integer> getSubTaskIdList() {
         return subTaskIds;
+    }
+
+    @Override
+    public String toString() {
+        return "Epic{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", status=" + status +
+                '}';
     }
 }
 
