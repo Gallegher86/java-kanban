@@ -11,7 +11,7 @@ public class Main {
         scanner = new Scanner(System.in);
 
         Task testTask1 = new Task("Get something 1", "Do something 1 to get something 1");
-        Task testTask2 = new Task("Get something 2 ", "Do something 2 to get something 2");
+        Task testTask2 = new Task("Get something 2", "Do something 2 to get something 2");
         Epic testEpic1 = new Epic("Great plan", "PROFIT");
         Epic testEpic2 = new Epic("Small plan", "small PROFIT");
 
@@ -31,46 +31,71 @@ public class Main {
 
         while (true) {
             printMenu();
+            System.out.print("Введите команду: ");
             String command = scanner.nextLine();
 
             switch (command) {
                 case "1":
                     manager.addNewTask(addNewTask());
                     break;
-                case "2":
-                    for (Task task : new ArrayList<>(manager.getAllTasks())) {
-                        System.out.println(task);
-                        System.out.println("-".repeat(100));
+                case "2": {
+                    ArrayList<Task> tasks = manager.getAllTasks();
+                    if (tasks.isEmpty()) {
+                        System.out.println("Список задач пуст.");
+                    } else {
+                        for (Task task : tasks) {
+                            System.out.println(task);
+                            System.out.println("-".repeat(100));
+                        }
                     }
                     break;
-                case "3":
-                    for (Epic epic : new ArrayList<>(manager.getAllEpics())) {
-                        System.out.println(epic);
-                        System.out.println("-".repeat(100));
+                }
+                case "3": {
+                    ArrayList<Epic> epics = manager.getAllEpics();
+                    if (epics.isEmpty()) {
+                        System.out.println("Список эпиков пуст.");
+                    } else {
+                        for (Epic epic : epics) {
+                            System.out.println(epic);
+                            System.out.println("-".repeat(100));
+                        }
                     }
                     break;
-                case "4":
-                    for (SubTask subTask : new ArrayList<>(manager.getAllSubTasks())) {
-                        System.out.println(subTask);
-                        System.out.println("-".repeat(100));
+                }
+                case "4": {
+                    ArrayList<SubTask> subTasks = manager.getAllSubTasks();
+                    if (subTasks.isEmpty()) {
+                        System.out.println("Список подзадач пуст.");
+                    } else {
+                        for (SubTask subTask : subTasks) {
+                            System.out.println(subTask);
+                            System.out.println("-".repeat(100));
+                        }
                     }
                     break;
+                }
                 case "5":
+                    printTaskInfo(manager.getAllTasks());
                     System.out.print("Введите идентификатор задачи: ");
                     int id = scanner.nextInt();
                     scanner.nextLine();
                     System.out.println(manager.getTaskById(id));
                     break;
                 case "6":
+                    printTaskInfo(manager.getAllTasks());
                     manager.updateTask(updateTask());
                     break;
                 case "7":
-                    System.out.print("Введите идентификатор эпика: ");
+                    printTaskInfo(manager.getAllEpics());
+                    System.out.print("Введите идентификатор эпика для получения подзадач: ");
                     int epicId = scanner.nextInt();
                     scanner.nextLine();
-                    manager.getEpicSubTasks(epicId);
+                    for (SubTask subTask : new ArrayList<>(manager.getEpicSubTasks(epicId))) {
+                        System.out.println(subTask);
+                    }
                     break;
                 case "8":
+                    printTaskInfo(manager.getAllTasks());
                     System.out.print("Введите идентификатор задачи на удаление: ");
                     int deleteId = scanner.nextInt();
                     scanner.nextLine();
@@ -92,14 +117,15 @@ public class Main {
                     System.out.println("Введена неизвестная команда.");
                     break;
             }
-
         }
 
     }
 
     private static void printMenu() {
+        System.out.println("-".repeat(20));
         System.out.println("Отладочное меню TaskManager.");
         System.out.println("Выберите команду:");
+        System.out.println("-".repeat(20));
         System.out.println("1 - Добавить новую задачу в TaskManager.");
         System.out.println("2 - Получить список всех хранящихся задач.");
         System.out.println("3 - Получить список всех хранящихся эпиков.");
@@ -110,6 +136,7 @@ public class Main {
         System.out.println("8 - Удалить задачу по идентификатору");
         System.out.println("9 - Удалить все задачи.");
         System.out.println("10 - Выйти из программы.");
+        System.out.println("-".repeat(20));
     }
 
     private static Task addNewTask() {
@@ -156,15 +183,14 @@ public class Main {
         String statusInput = scanner.nextLine().trim();
         Status status;
 
-        if (statusInput.equals("NEW")) {
-            status = Status.NEW;
-        } else if (statusInput.equals("IN_PROGRESS")) {
-            status = Status.IN_PROGRESS;
-        } else if (statusInput.equals("DONE")) {
-            status = Status.DONE;
-        } else {
-            System.out.println("Введен несуществующий статус: " + statusInput + ", установлен статус - NEW.");
-            status = Status.NEW;
+        switch (statusInput) {
+            case "NEW" -> status = Status.NEW;
+            case "IN_PROGRESS" -> status = Status.IN_PROGRESS;
+            case "DONE" -> status = Status.DONE;
+            default -> {
+                System.out.println("Введен несуществующий статус: " + statusInput + ", установлен статус - NEW.");
+                status = Status.NEW;
+            }
         }
 
         System.out.print("Задача является подзадачей эпика? Введите 1 если да: ");
@@ -174,19 +200,40 @@ public class Main {
             Integer epicId = scanner.nextInt();
             scanner.nextLine();
             SubTask subTask = new SubTask(id, name, description, status, epicId);
-            System.out.println("Подзадача обновлена.");
+            System.out.println("Подзадача для обновления создана.");
             return subTask;
         } else {
             System.out.print("Задача является новым эпиком? Введите 1 если да: ");
             String epicChoice = scanner.nextLine().trim();
             if (epicChoice.equals("1")) {
                 Epic epic = new Epic(id, name, description);
-                System.out.println("Эпик обновлен.");
+                System.out.println("Эпик для обновления создан.");
                 return epic;
             } else {
                 Task task = new Task(id, name, description, status);
-                System.out.println("Задача обновлена.");
+                System.out.println("Задача для обновления создана.");
                 return task;
+            }
+        }
+    }
+
+    private static void printTaskInfo (ArrayList<? extends Task> taskList) {
+        System.out.println("Список сохраненных задач:");
+        System.out.println("-".repeat(100));
+        for (Task task : taskList) {
+            int id = task.getId();
+            String name = task.getName();
+
+            if (task instanceof SubTask subTask) {
+                int epicId = subTask.getEpicId();
+                System.out.println("Подзадача id [" + id + "], эпика epicId [" + epicId + "]. Имя: *" + name + "*.");
+                System.out.println("-".repeat(100));
+            } else if (task instanceof Epic) {
+                System.out.println("Эпик id [" + id + "]. Имя: *" + name + "*.");
+                System.out.println("-".repeat(100));
+            } else {
+                System.out.println("Задача id [:" + id + "]. Имя: *" + name + "*.");
+                System.out.println("-".repeat(100));
             }
         }
     }
