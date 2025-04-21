@@ -1,6 +1,6 @@
-package yandex.practicum.kanban.tasks;
+package com.yandex.taskmanager.model;
 
-public class SubTask extends Task{
+public class SubTask extends Task {
     private final Integer epicId;
 
     public SubTask(String name, String description, Integer epicId) {

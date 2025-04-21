@@ -1,4 +1,4 @@
-package yandex.practicum.kanban.tasks;
+package com.yandex.taskmanager.model;
 
 import java.util.Objects;
 
@@ -30,7 +30,7 @@ public class Task {
         return name;
     }
 
-    void setId(int id) {
+    public void setId(int id) {
         this.id = id;
     }
 
@@ -42,7 +42,7 @@ public class Task {
         return status;
     }
 
-    void setStatus(Status status) {
+    public void setStatus(Status status) {
         this.status = status;
     }
 

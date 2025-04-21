@@ -1,4 +1,4 @@
-package yandex.practicum.kanban.tasks;
+package com.yandex.taskmanager.model;
 
 public enum Status {
     NEW,

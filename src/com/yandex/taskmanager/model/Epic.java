@@ -1,8 +1,9 @@
-package yandex.practicum.kanban.tasks;
+package com.yandex.taskmanager.model;
+
 import java.util.ArrayList;
 
 public class Epic extends Task {
-    private final ArrayList<Integer> subTaskIds = new ArrayList<>();
+    private ArrayList<Integer> subTaskIds = new ArrayList<>();
 
     public Epic(String name, String description) {
         super(name, description);
@@ -12,11 +13,11 @@ public class Epic extends Task {
         super(id, name, description);
     }
 
-    protected void addSubTaskId(int id) {
+    public void addSubTaskId(int id) {
         subTaskIds.add(id);
     }
 
-    protected ArrayList<Integer> getSubTaskIdList() {
+    public ArrayList<Integer> getSubTaskIdList() {
         return subTaskIds;
     }
 

@@ -1,7 +1,8 @@
-import yandex.practicum.kanban.tasks.*;
+import com.yandex.taskmanager.model.*;
+import com.yandex.taskmanager.service.TaskManager;
+
 import java.util.Scanner;
 import java.util.ArrayList;
-
 
 public class Main {
     static Scanner scanner;
@@ -37,6 +38,14 @@ public class Main {
             switch (command) {
                 case "1":
                     manager.addNewTask(addNewTask());
+                    switch (manager.getTaskManagerStatus()) {
+                        case OK -> System.out.println("Задача добавлена в менеджер, присвоен id: " + manager.getTaskCount());
+                        case WRONG_EPIC_ID -> System.out.println("Ошибка. В метод addNewTask передана подзадача с некорректным " +
+                                "epicId.");
+                        case WRONG_ID -> System.out.println("Ошибка. В метод addNewTask передан объект с уже заданным id, " +
+                                "применен неверный конструктор.");
+                        case NULL -> System.out.println("Ошибка. В метод addNewTask передан null-объект.");
+                    }
                     break;
                 case "2": {
                     ArrayList<Task> tasks = manager.getAllTasks();
@@ -79,19 +88,37 @@ public class Main {
                     System.out.print("Введите идентификатор задачи: ");
                     int id = scanner.nextInt();
                     scanner.nextLine();
-                    System.out.println(manager.getTaskById(id));
+                    Task task = manager.getTaskById(id);
+                    if (task.getId() == 0) {
+                        System.out.println("Введенный id: " + id + " не найден в списке задач. Возвращена пустая задача.");
+                    } else {
+                        System.out.println(task);
+                    }
                     break;
                 case "6":
                     printTaskInfo(manager.getAllTasks());
                     manager.updateTask(updateTask());
+                    switch (manager.getTaskManagerStatus()) {
+                        case OK -> System.out.println("Задача обновлена.");
+                        case WRONG_CLASS -> System.out.println("Ошибка. Класс переданной в метод updateTask задачи не " +
+                                "совпадает с классом существующей задачи.");
+                        case WRONG_ID -> System.out.println("Задачи с переданным id нет в списке менеджера.");
+                        case WRONG_EPIC_ID -> System.out.println("Эпик с указанным в передаваемой подзадаче epicId не " +
+                                "существует, или у задачи указан epicId неверного эпика.");
+                    }
                     break;
                 case "7":
                     printTaskInfo(manager.getAllEpics());
                     System.out.print("Введите идентификатор эпика для получения подзадач: ");
                     int epicId = scanner.nextInt();
                     scanner.nextLine();
-                    for (SubTask subTask : new ArrayList<>(manager.getEpicSubTasks(epicId))) {
+                    ArrayList<SubTask> subTasks = manager.getEpicSubTasks(epicId);
+                    if (subTasks.isEmpty()) {
+                        System.out.println("Введенный id: " + epicId + " не найден в списке эпиков. Возвращен пустой список.");
+                    } else {
+                        for (SubTask subTask : subTasks) {
                         System.out.println(subTask);
+                        }
                     }
                     break;
                 case "8":
@@ -100,12 +127,17 @@ public class Main {
                     int deleteId = scanner.nextInt();
                     scanner.nextLine();
                     manager.deleteTaskById(deleteId);
+                    switch (manager.getTaskManagerStatus()) {
+                        case OK -> System.out.println("Задача по id: " + deleteId + " удалена");
+                        case WRONG_ID -> System.out.println("Введенный id: " + deleteId + " не найден в списках менеджера.");
+                    }
                     break;
                 case "9":
                     System.out.print("Вы уверены, что хотите удалить все задачи? Если да, нажмите 1: ");
                     String lastChance = scanner.nextLine();
                     if (lastChance.equals("1")) {
                         manager.deleteAllTasks();
+                        System.out.println("Все задачи удалены.");
                     } else {
                         System.out.println("Удаление отменено.");
                     }

@@ -1,12 +1,16 @@
-package yandex.practicum.kanban.tasks;
+package com.yandex.taskmanager.service;
+
+import com.yandex.taskmanager.model.*;
+import static com.yandex.taskmanager.service.TaskManagerStatus.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public class TaskManager {
     static int taskCount = 0;
-    HashMap<Integer, Task> taskList = new HashMap<>();
-    HashMap<Integer, Epic> epicList = new HashMap<>();
-    HashMap<Integer, SubTask> subTaskList = new HashMap<>();
+    private TaskManagerStatus taskManagerStatus;
+    private final HashMap<Integer, Task> taskList = new HashMap<>();
+    private final HashMap<Integer, Epic> epicList = new HashMap<>();
+    private final HashMap<Integer, SubTask> subTaskList = new HashMap<>();
 
     public void addNewTask(Task task) {
         if (task != null && task.getId() == 0) {
@@ -18,21 +22,22 @@ public class TaskManager {
                     subTaskList.put(subTask.getId(), subTask);
                     epic.addSubTaskId(subTask.getId());
                     resetEpicStatus(subTask.getEpicId());
+                    taskManagerStatus = OK;
                 } else {
-                    System.out.println("В метод addNewTask передана подзадача с некорректным epicId: " +
-                            subTask.getEpicId() + ".");
+                    taskManagerStatus = WRONG_EPIC_ID;
                 }
             } else if (task instanceof Epic epic) {
                 addToTaskList(task);
                 epicList.put(epic.getId(), epic);
+                taskManagerStatus = OK;
             } else {
                 addToTaskList(task);
+                taskManagerStatus = OK;
             }
         } else if (task != null) {
-            System.out.println("В метод addNewTask передан объект с уже заданным id: " + task.getId() + ", применен " +
-                    "неверный конструктор.");
+            taskManagerStatus = WRONG_ID;
         } else {
-            System.out.println("В метод addNewTask передан некорректный объект.");
+            taskManagerStatus = NULL;
         }
     }
 
@@ -40,7 +45,6 @@ public class TaskManager {
         taskCount++;
         task.setId(taskCount);
         taskList.put(task.getId(), task);
-        System.out.println("Задача добавлена, присвоен id: " + task.getId());
     }
 
     public ArrayList<Task> getAllTasks() {
@@ -60,14 +64,12 @@ public class TaskManager {
         epicList.clear();
         subTaskList.clear();
         taskCount = 0;
-        System.out.println("Все задачи удалены.");
     }
 
     public Task getTaskById(int id) {
         if (taskList.containsKey(id)) {
             return taskList.get(id);
         } else {
-            System.out.println("Введенный id: " + id + " не найден в списке задач. Возвращена пустая задача.");
             return new Task("", "");
         }
     }
@@ -84,7 +86,6 @@ public class TaskManager {
             }
             return subTasks;
         } else {
-            System.out.println("Введенный id: " + id + " не найден в списке эпиков. Возвращен пустой список.");
             return new ArrayList<>();
         }
     }
@@ -99,7 +100,7 @@ public class TaskManager {
             }
             epicList.remove(id);
             taskList.remove(id);
-            System.out.println("Задача по id: " + id + " удалена");
+            taskManagerStatus = OK;
 
         } else if (subTaskList.containsKey(id)) {
             SubTask subTask = subTaskList.get(id);
@@ -110,14 +111,14 @@ public class TaskManager {
             resetEpicStatus(epicId);
             subTaskList.remove(id);
             taskList.remove(id);
-            System.out.println("Задача по id: " + id + " удалена");
+            taskManagerStatus = OK;
 
         } else if (taskList.containsKey(id)) {
             taskList.remove(id);
-            System.out.println("Задача по id: " + id + " удалена");
+            taskManagerStatus = OK;
 
         } else {
-            System.out.println("Введенный id: " + id + " не найден в списках менеджера.");
+            taskManagerStatus = WRONG_ID;
         }
     }
 
@@ -151,10 +152,10 @@ public class TaskManager {
                 epic.setStatus(Status.IN_PROGRESS);
             }
         }
-        System.out.println("У эпика id " + epic.getId() + " " + epic.getName() + " статус обновлен до " + epic.getStatus());
     }
 
     public void updateTask(Task newTask) {
+
         Task existingTask = taskList.get(newTask.getId());
 
         if (existingTask != null && existingTask.getClass() == newTask.getClass()) {
@@ -166,12 +167,10 @@ public class TaskManager {
                 updateGenericTask(newTask);
             }
         } else {
-            System.out.println("В метод updateTask передан некорректный объект.");
             if (existingTask != null) {
-                System.out.println("Класс переданной задачи: " + newTask.getClass() + " не совпадает с классом существующей " +
-                        "задачи: " + existingTask.getClass() + ".");
+                taskManagerStatus = WRONG_CLASS;
             } else {
-                System.out.println("Задачи с id: " + newTask.getId() + " нет в списке.");
+                taskManagerStatus = WRONG_ID;
             }
         }
     }
@@ -187,9 +186,9 @@ public class TaskManager {
             epicList.put(newEpic.getId(), newEpic);
             resetEpicStatus(newEpic.getId());
             taskList.put(newEpic.getId(), newEpic);
-            System.out.println("Эпик с id: " + newEpic.getId() + " обновлен.");
+            taskManagerStatus = OK;
         } else {
-            System.out.println("Эпик с id: " + newEpic.getId() + " не найден.");
+            taskManagerStatus = WRONG_ID;
         }
     }
 
@@ -197,7 +196,7 @@ public class TaskManager {
         Epic epic = epicList.get(newSubTask.getEpicId());
 
         if (epic == null) {
-            System.out.println("Эпик с id: " + newSubTask.getEpicId() + " не найден.");
+            taskManagerStatus = WRONG_EPIC_ID;
             return;
         }
         ArrayList<Integer> checkIds = epic.getSubTaskIdList();
@@ -205,15 +204,23 @@ public class TaskManager {
         if (checkIds.contains(newSubTask.getId())) {
             subTaskList.put(newSubTask.getId(), newSubTask);
             taskList.put(newSubTask.getId(), newSubTask);
-            System.out.println("Подзадача с id: " + newSubTask.getId() + " обновлена.");
+            taskManagerStatus = OK;
             resetEpicStatus(newSubTask.getEpicId());
         } else {
-            System.out.println("Задачи с id: " + newSubTask.getId() + " нет в эпике с epicId: " + epic.getId() + ".");
+            taskManagerStatus = WRONG_EPIC_ID;
         }
     }
 
     private void updateGenericTask(Task newTask) {
         taskList.put(newTask.getId(), newTask);
-        System.out.println("Задача с id: " + newTask.getId() + " обновлена.");
+        taskManagerStatus = OK;
+    }
+
+    public TaskManagerStatus getTaskManagerStatus() {
+        return taskManagerStatus;
+    }
+
+    public int getTaskCount() {
+        return taskCount;
     }
 }
