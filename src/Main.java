@@ -1,5 +1,6 @@
 import com.yandex.taskmanager.model.*;
 import com.yandex.taskmanager.service.TaskManager;
+import com.yandex.taskmanager.service.TaskManagerStatus;
 
 import java.util.Scanner;
 import java.util.ArrayList;
@@ -39,12 +40,12 @@ public class Main {
                 case "1":
                     manager.addNewTask(addNewTask());
                     switch (manager.getTaskManagerStatus()) {
-                        case OK -> System.out.println("Задача добавлена в менеджер, присвоен id: " + manager.getTaskCount());
                         case WRONG_EPIC_ID -> System.out.println("Ошибка. В метод addNewTask передана подзадача с некорректным " +
                                 "epicId.");
                         case WRONG_ID -> System.out.println("Ошибка. В метод addNewTask передан объект с уже заданным id, " +
                                 "применен неверный конструктор.");
                         case NULL -> System.out.println("Ошибка. В метод addNewTask передан null-объект.");
+                        case DEFAULT -> System.out.println("Задача добавлена в менеджер, присвоен id: " + manager.getTaskCount());
                     }
                     break;
                 case "2": {
@@ -99,12 +100,12 @@ public class Main {
                     printTaskInfo(manager.getAllTasks());
                     manager.updateTask(updateTask());
                     switch (manager.getTaskManagerStatus()) {
-                        case OK -> System.out.println("Задача обновлена.");
                         case WRONG_CLASS -> System.out.println("Ошибка. Класс переданной в метод updateTask задачи не " +
                                 "совпадает с классом существующей задачи.");
                         case WRONG_ID -> System.out.println("Задачи с переданным id нет в списке менеджера.");
                         case WRONG_EPIC_ID -> System.out.println("Эпик с указанным в передаваемой подзадаче epicId не " +
                                 "существует, или у задачи указан epicId неверного эпика.");
+                        case DEFAULT -> System.out.println("Задача обновлена.");
                     }
                     break;
                 case "7":
@@ -127,9 +128,10 @@ public class Main {
                     int deleteId = scanner.nextInt();
                     scanner.nextLine();
                     manager.deleteTaskById(deleteId);
-                    switch (manager.getTaskManagerStatus()) {
-                        case OK -> System.out.println("Задача по id: " + deleteId + " удалена");
-                        case WRONG_ID -> System.out.println("Введенный id: " + deleteId + " не найден в списках менеджера.");
+                    if (manager.getTaskManagerStatus() == TaskManagerStatus.WRONG_ID) {
+                        System.out.println("Введенный id: " + deleteId + " не найден в списках менеджера.");
+                    } else {
+                        System.out.println("Задача по id: " + deleteId + " удалена");
                     }
                     break;
                 case "9":

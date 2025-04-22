@@ -7,7 +7,7 @@ import java.util.HashMap;
 
 public class TaskManager {
     static int taskCount = 0;
-    private TaskManagerStatus taskManagerStatus;
+    private TaskManagerStatus taskManagerStatus = DEFAULT;
     private final HashMap<Integer, Task> taskList = new HashMap<>();
     private final HashMap<Integer, Epic> epicList = new HashMap<>();
     private final HashMap<Integer, SubTask> subTaskList = new HashMap<>();
@@ -22,17 +22,14 @@ public class TaskManager {
                     subTaskList.put(subTask.getId(), subTask);
                     epic.addSubTaskId(subTask.getId());
                     resetEpicStatus(subTask.getEpicId());
-                    taskManagerStatus = OK;
                 } else {
                     taskManagerStatus = WRONG_EPIC_ID;
                 }
             } else if (task instanceof Epic epic) {
                 addToTaskList(task);
                 epicList.put(epic.getId(), epic);
-                taskManagerStatus = OK;
             } else {
                 addToTaskList(task);
-                taskManagerStatus = OK;
             }
         } else if (task != null) {
             taskManagerStatus = WRONG_ID;
@@ -100,7 +97,6 @@ public class TaskManager {
             }
             epicList.remove(id);
             taskList.remove(id);
-            taskManagerStatus = OK;
 
         } else if (subTaskList.containsKey(id)) {
             SubTask subTask = subTaskList.get(id);
@@ -111,11 +107,9 @@ public class TaskManager {
             resetEpicStatus(epicId);
             subTaskList.remove(id);
             taskList.remove(id);
-            taskManagerStatus = OK;
 
         } else if (taskList.containsKey(id)) {
             taskList.remove(id);
-            taskManagerStatus = OK;
 
         } else {
             taskManagerStatus = WRONG_ID;
@@ -186,7 +180,6 @@ public class TaskManager {
             epicList.put(newEpic.getId(), newEpic);
             resetEpicStatus(newEpic.getId());
             taskList.put(newEpic.getId(), newEpic);
-            taskManagerStatus = OK;
         } else {
             taskManagerStatus = WRONG_ID;
         }
@@ -204,7 +197,6 @@ public class TaskManager {
         if (checkIds.contains(newSubTask.getId())) {
             subTaskList.put(newSubTask.getId(), newSubTask);
             taskList.put(newSubTask.getId(), newSubTask);
-            taskManagerStatus = OK;
             resetEpicStatus(newSubTask.getEpicId());
         } else {
             taskManagerStatus = WRONG_EPIC_ID;
@@ -213,11 +205,12 @@ public class TaskManager {
 
     private void updateGenericTask(Task newTask) {
         taskList.put(newTask.getId(), newTask);
-        taskManagerStatus = OK;
     }
 
     public TaskManagerStatus getTaskManagerStatus() {
-        return taskManagerStatus;
+        TaskManagerStatus currentStatus = taskManagerStatus;
+        taskManagerStatus = DEFAULT;
+        return currentStatus;
     }
 
     public int getTaskCount() {
