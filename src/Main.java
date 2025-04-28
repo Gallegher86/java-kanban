@@ -1,6 +1,7 @@
 import com.yandex.taskmanager.model.*;
-import com.yandex.taskmanager.service.TaskManager;
 import com.yandex.taskmanager.service.TaskManagerStatus;
+import com.yandex.taskmanager.service.TaskManager;
+import com.yandex.taskmanager.service.Managers;
 
 import java.util.Scanner;
 import java.util.ArrayList;
@@ -9,7 +10,7 @@ public class Main {
     static Scanner scanner;
 
     public static void main(String[] args) {
-        TaskManager manager = new TaskManager();
+        TaskManager manager = Managers.getDefault();
         scanner = new Scanner(System.in);
 
         Task testTask1 = new Task("Get something 1", "Do something 1 to get something 1");
