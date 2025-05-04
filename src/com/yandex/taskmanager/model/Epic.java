@@ -1,9 +1,10 @@
 package com.yandex.taskmanager.model;
 
+import java.util.List;
 import java.util.ArrayList;
 
 public class Epic extends Task {
-    private ArrayList<Integer> subTaskIds = new ArrayList<>();
+    private List<Integer> subTaskIds = new ArrayList<>();
 
     public Epic(String name, String description) {
         super(name, description);
@@ -14,11 +15,26 @@ public class Epic extends Task {
     }
 
     public void addSubTaskId(int id) {
-        subTaskIds.add(id);
+        if (id != this.id && id > 0) {
+            subTaskIds.add(id);
+        }
     }
 
-    public ArrayList<Integer> getSubTaskIdList() {
-        return subTaskIds;
+    public void removeSubTaskId(int id) {
+        subTaskIds.remove((Integer) id);
+    }
+
+    public void setSubTaskIdList(List<Integer> newList) {
+        for (Integer checkId : newList) {
+            if (checkId == this.id || checkId <= 0) {
+                return;
+            }
+        }
+        subTaskIds = new ArrayList<>(newList);
+    }
+
+    public List<Integer> getSubTaskIdList() {
+        return new ArrayList<>(subTaskIds);
     }
 
     @Override

@@ -30,8 +30,14 @@ public class Task {
         return name;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
     public void setId(int id) {
-        this.id = id;
+        if (id > 0) {
+            this.id = id;
+        }
     }
 
     public int getId() {

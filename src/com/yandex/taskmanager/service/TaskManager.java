@@ -4,30 +4,33 @@ import com.yandex.taskmanager.model.Epic;
 import com.yandex.taskmanager.model.SubTask;
 import com.yandex.taskmanager.model.Task;
 
-import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 public interface TaskManager {
     void addNewTask(Task task);
 
-    ArrayList<Task> getAllTasks();
+    List<Task> getAllTasks();
 
-    ArrayList<Epic> getAllEpics();
+    List<Epic> getAllEpics();
 
-    ArrayList<SubTask> getAllSubTasks();
+    List<SubTask> getAllSubTasks();
 
-    ArrayList<Task> getHistoryList();
+    List<Task> getHistory();
+
+    void clearHistory();
 
     void deleteAllTasks();
 
-    Task getTaskById(int id);
+    Optional<Task> getTaskById(int id);
 
-    ArrayList<SubTask> getEpicSubTasks(int id);
+    List<SubTask> getEpicSubTasks(int id);
 
     void deleteTaskById(int id);
 
     void updateTask(Task newTask);
 
-    TaskManagerStatus getTaskManagerStatus();//возможно лишнее
+    TaskManagerStatus getTaskManagerStatus();
 
-    int getTaskCount();//возможно лишнее
+    int getTaskCount();
 }

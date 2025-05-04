@@ -18,6 +18,13 @@ public class SubTask extends Task {
     }
 
     @Override
+    public void setId(int id) {
+        if (id > 0 && id != epicId) {
+            super.id = id;
+        }
+    }
+
+    @Override
     public String toString() {
         return "SubTask{" +
                 "id=" + id +

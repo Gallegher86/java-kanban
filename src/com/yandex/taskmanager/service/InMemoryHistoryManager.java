@@ -2,13 +2,14 @@ package com.yandex.taskmanager.service;
 
 import com.yandex.taskmanager.model.Task;
 
+import java.util.List;
 import java.util.ArrayList;
 
 public class InMemoryHistoryManager implements HistoryManager {
-    private final ArrayList<Task> historyList = new ArrayList<>();
+    private final List<Task> historyList = new ArrayList<>();
 
-    public ArrayList<Task> getHistory() {
-        return historyList;
+    public List<Task> getHistory() {
+        return new ArrayList<>(historyList);
     }
 
     public void addHistory(Task task) {
@@ -16,5 +17,9 @@ public class InMemoryHistoryManager implements HistoryManager {
             historyList.remove(0);
         }
         historyList.add(task);
+    }
+
+    public void clearHistory() {
+        historyList.clear();
     }
 }

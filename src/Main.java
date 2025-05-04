@@ -4,13 +4,14 @@ import com.yandex.taskmanager.service.TaskManager;
 import com.yandex.taskmanager.service.Managers;
 
 import java.util.Scanner;
-import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 public class Main {
     static Scanner scanner;
 
     public static void main(String[] args) {
-        TaskManager manager = Managers.getDefault();
+        TaskManager manager = Managers.getDefaultTaskManager();
         scanner = new Scanner(System.in);
 
         Task testTask1 = new Task("Get something 1", "Do something 1 to get something 1");
@@ -41,16 +42,19 @@ public class Main {
                 case "1":
                     manager.addNewTask(addNewTask());
                     switch (manager.getTaskManagerStatus()) {
-                        case WRONG_EPIC_ID -> System.out.println("Ошибка. В метод addNewTask передана подзадача с некорректным " +
-                                "epicId.");
-                        case WRONG_ID -> System.out.println("Ошибка. В метод addNewTask передан объект с уже заданным id, " +
-                                "применен неверный конструктор.");
+                        case WRONG_EPIC_ID ->
+                                System.out.println("Ошибка. В метод addNewTask передана подзадача с некорректным " +
+                                        "epicId.");
                         case NULL -> System.out.println("Ошибка. В метод addNewTask передан null-объект.");
-                        case DEFAULT -> System.out.println("Задача добавлена в менеджер, присвоен id: " + manager.getTaskCount());
+                        case NOT_NEW_TASK -> System.out.println("Ошибка. В метод addNewTask передана задача с " +
+                                "уже заданным id или статусом отличным от NEW, или эпик с заполненным " +
+                                "списком SubTaskId.");
+                        case DEFAULT ->
+                                System.out.println("Задача добавлена в менеджер, присвоен id: " + manager.getTaskCount());
                     }
                     break;
                 case "2": {
-                    ArrayList<Task> tasks = manager.getAllTasks();
+                    List<Task> tasks = manager.getAllTasks();
                     if (tasks.isEmpty()) {
                         System.out.println("Список задач пуст.");
                     } else {
@@ -62,7 +66,7 @@ public class Main {
                     break;
                 }
                 case "3": {
-                    ArrayList<Epic> epics = manager.getAllEpics();
+                    List<Epic> epics = manager.getAllEpics();
                     if (epics.isEmpty()) {
                         System.out.println("Список эпиков пуст.");
                     } else {
@@ -74,7 +78,7 @@ public class Main {
                     break;
                 }
                 case "4": {
-                    ArrayList<SubTask> subTasks = manager.getAllSubTasks();
+                    List<SubTask> subTasks = manager.getAllSubTasks();
                     if (subTasks.isEmpty()) {
                         System.out.println("Список подзадач пуст.");
                     } else {
@@ -90,22 +94,25 @@ public class Main {
                     System.out.print("Введите идентификатор задачи: ");
                     int id = scanner.nextInt();
                     scanner.nextLine();
-                    Task task = manager.getTaskById(id);
-                    if (task.getId() == 0) {
-                        System.out.println("Введенный id: " + id + " не найден в списке задач. Возвращена пустая задача.");
+                    Optional<Task> task = manager.getTaskById(id);
+                    if (task.isPresent()) {
+                        System.out.println(task.get());
                     } else {
-                        System.out.println(task);
+                        System.out.println("Введенный id: " + id + " не найден в списке задач.");
                     }
                     break;
                 case "6":
                     printTaskInfo(manager.getAllTasks());
                     manager.updateTask(updateTask());
                     switch (manager.getTaskManagerStatus()) {
-                        case WRONG_CLASS -> System.out.println("Ошибка. Класс переданной в метод updateTask задачи не " +
-                                "совпадает с классом существующей задачи.");
+                        case WRONG_CLASS ->
+                                System.out.println("Ошибка. Класс переданной в метод updateTask задачи не " +
+                                        "совпадает с классом существующей задачи.");
+                        case NULL -> System.out.println("Ошибка. В updateTask передан null-объект.");
                         case WRONG_ID -> System.out.println("Задачи с переданным id нет в списке менеджера.");
-                        case WRONG_EPIC_ID -> System.out.println("Эпик с указанным в передаваемой подзадаче epicId не " +
-                                "существует, или у задачи указан epicId неверного эпика.");
+                        case WRONG_EPIC_ID ->
+                                System.out.println("Эпик с указанным в передаваемой подзадаче epicId не " +
+                                        "существует, или у задачи указан epicId неверного эпика.");
                         case DEFAULT -> System.out.println("Задача обновлена.");
                     }
                     break;
@@ -114,16 +121,31 @@ public class Main {
                     System.out.print("Введите идентификатор эпика для получения подзадач: ");
                     int epicId = scanner.nextInt();
                     scanner.nextLine();
-                    ArrayList<SubTask> subTasks = manager.getEpicSubTasks(epicId);
+                    List<SubTask> subTasks = manager.getEpicSubTasks(epicId);
                     if (subTasks.isEmpty()) {
                         System.out.println("Введенный id: " + epicId + " не найден в списке эпиков. Возвращен пустой список.");
                     } else {
                         for (SubTask subTask : subTasks) {
-                        System.out.println(subTask);
+                            System.out.println(subTask);
                         }
                     }
                     break;
                 case "8":
+                    List<Task> historyList = manager.getHistory();
+                    if (historyList.isEmpty()) {
+                        System.out.println("История просмотров пуста.");
+                    } else {
+                        for (Task history : historyList) {
+                            System.out.println(history);
+                            System.out.println("-".repeat(100));
+                        }
+                    }
+                    break;
+                case "9":
+                    manager.clearHistory();
+                    System.out.println("История просмотров очищена.");
+                    break;
+                case "10":
                     printTaskInfo(manager.getAllTasks());
                     System.out.print("Введите идентификатор задачи на удаление: ");
                     int deleteId = scanner.nextInt();
@@ -135,7 +157,7 @@ public class Main {
                         System.out.println("Задача по id: " + deleteId + " удалена");
                     }
                     break;
-                case "9":
+                case "11":
                     System.out.print("Вы уверены, что хотите удалить все задачи? Если да, нажмите 1: ");
                     String lastChance = scanner.nextLine();
                     if (lastChance.equals("1")) {
@@ -145,7 +167,7 @@ public class Main {
                         System.out.println("Удаление отменено.");
                     }
                     break;
-                case "10":
+                case "12":
                     System.out.println("Работа программы прекращена.");
                     return;
                 default:
@@ -153,7 +175,6 @@ public class Main {
                     break;
             }
         }
-
     }
 
     private static void printMenu() {
@@ -168,9 +189,11 @@ public class Main {
         System.out.println("5 - Получить задачу по идентификатору.");
         System.out.println("6 - Обновить хранящуюся задачу.");
         System.out.println("7 - Получить список всех подзадач эпика.");
-        System.out.println("8 - Удалить задачу по идентификатору");
-        System.out.println("9 - Удалить все задачи.");
-        System.out.println("10 - Выйти из программы.");
+        System.out.println("8 - Просмотреть историю просмотра задач");
+        System.out.println("9 - Очистить историю просмотра задач");
+        System.out.println("10 - Удалить задачу по идентификатору");
+        System.out.println("11 - Удалить все задачи.");
+        System.out.println("12 - Выйти из программы.");
         System.out.println("-".repeat(20));
     }
 
@@ -252,7 +275,7 @@ public class Main {
         }
     }
 
-    private static void printTaskInfo (ArrayList<? extends Task> taskList) {
+    private static void printTaskInfo (List<? extends Task> taskList) {
         System.out.println("Список сохраненных задач:");
         System.out.println("-".repeat(100));
         for (Task task : taskList) {
