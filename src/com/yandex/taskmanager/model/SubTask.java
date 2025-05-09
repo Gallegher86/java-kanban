@@ -21,6 +21,8 @@ public class SubTask extends Task {
     public void setId(int id) {
         if (id > 0 && id != epicId) {
             super.id = id;
+        } else {
+            throw new IllegalArgumentException("Попытка установить ID равным epicId, 0 или отрицательным: " + id);
         }
     }
 

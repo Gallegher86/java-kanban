@@ -1,7 +1,10 @@
 package com.yandex.taskmanager.model;
 
 import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SubTaskTest {
     @Test
@@ -25,16 +28,22 @@ class SubTaskTest {
         assertEquals(999 , subTask1.getId(),
                 "id подзадачи должен поменяться на 999.");
 
-        subTask1.setId(0);
+        IllegalArgumentException zeroException = assertThrows(IllegalArgumentException.class, () -> subTask1.setId(0));
+        assertTrue(zeroException.getMessage().contains("0"),
+                "Сообщение об ошибке должно содержать число 0.");
         assertEquals(999 , subTask1.getId(),
-                "id не должен меняться при попытке установить 0.");
+                "id задачи не должен поменяться.");
 
-        subTask1.setId(-999);
+        IllegalArgumentException negativeException = assertThrows(IllegalArgumentException.class, () -> subTask1.setId(-999));
+        assertTrue(negativeException.getMessage().contains("отрицательным"),
+                "Сообщение об ошибке должно содержать слово 'отрицательным'.");
         assertEquals(999 , subTask1.getId(),
-                "id не должен меняться при попытке установить отрицательное значение.");
+                "id задачи не должен поменяться.");
 
-        subTask1.setId(epicId);
+        IllegalArgumentException epicIdException = assertThrows(IllegalArgumentException.class, () -> subTask1.setId(10));
+        assertTrue(epicIdException.getMessage().contains("epicId"),
+                "Сообщение об ошибке должно содержать слово 'epicId'.");
         assertEquals(999 , subTask1.getId(),
-                "id не должен меняться при попытке установить id равным epicId.");
+                "id задачи не должен поменяться.");
     }
 }

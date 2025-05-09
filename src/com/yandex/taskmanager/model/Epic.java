@@ -17,6 +17,8 @@ public class Epic extends Task {
     public void addSubTaskId(int id) {
         if (id != this.id && id > 0) {
             subTaskIds.add(id);
+        } else {
+            throw new IllegalArgumentException("Переданный subTaskId, равен ID эпика, 0 или отрицателен: " + id);
         }
     }
 
@@ -27,7 +29,7 @@ public class Epic extends Task {
     public void setSubTaskIdList(List<Integer> newList) {
         for (Integer checkId : newList) {
             if (checkId == this.id || checkId <= 0) {
-                return;
+                throw new IllegalArgumentException("В переданном subTaskIds, есть ID эпика или 0, или отрицательный ID: " + checkId);
             }
         }
         subTaskIds = new ArrayList<>(newList);

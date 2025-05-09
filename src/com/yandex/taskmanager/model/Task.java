@@ -37,6 +37,8 @@ public class Task {
     public void setId(int id) {
         if (id > 0) {
             this.id = id;
+        } else {
+            throw new IllegalArgumentException("Попытка установить ID равным 0 или отрицательным: " + id);
         }
     }
 

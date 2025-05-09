@@ -6,11 +6,14 @@ import java.util.ArrayList;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class InMemoryHistoryManagerTest {
     HistoryManager manager;
     List<Task> checkList;
+    int historyManagerMaxSize = 10;
 
     @BeforeEach
     void setManager() {
@@ -53,17 +56,17 @@ class InMemoryHistoryManagerTest {
         final Task secondTask = manager.getHistory().get(1);
 
         Task task10 = new Task(("ЗАДАЧА №10"),("ОПИСАНИЕ 10"));
-        task10.setId(10);
+        task10.setId(historyManagerMaxSize);
         Task task11 = new Task(("ЗАДАЧА №11"),("ОПИСАНИЕ 11"));
-        task11.setId(11);
+        task11.setId(historyManagerMaxSize + 1);
 
         manager.addHistory(task10);
-        Task currentFirstTask = manager.getHistory().get(0);
+        Task currentFirstTask = manager.getHistory().getFirst();
         assertEquals(firstTask, currentFirstTask,
                 "После добавления 10-й задачи история не должна удалять старые задачи.");
 
         manager.addHistory(task11);
-        currentFirstTask = manager.getHistory().get(0);
+        currentFirstTask = manager.getHistory().getFirst();
         assertNotEquals(firstTask, currentFirstTask,
                 "После добавления 11-й задачи история должна удалить самую старую задачу.");
         assertEquals(secondTask, currentFirstTask,
@@ -72,7 +75,7 @@ class InMemoryHistoryManagerTest {
 
     //ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ.
     private void createNineTaskListForTests() {
-        for (int i = 1; i < 10; i++) {
+        for (int i = 1; i < historyManagerMaxSize; i++) {
             Task task = new Task(("ЗАДАЧА №" + i),("ОПИСАНИЕ " + i));
             task.setId(i);
             manager.addHistory(task);

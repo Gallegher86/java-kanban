@@ -8,13 +8,19 @@ import java.util.List;
 import java.util.Optional;
 
 public interface TaskManager {
-    void addNewTask(Task task);
+    void addTask(Task task);
+
+    void addEpic(Epic epic);
+
+    void addSubTask(SubTask subTask);
 
     List<Task> getAllTasks();
 
-    List<Epic> getAllEpics();
+    List<Task> getTasks();
 
-    List<SubTask> getAllSubTasks();
+    List<Epic> getEpics();
+
+    List<SubTask> getSubTasks();
 
     List<Task> getHistory();
 
@@ -30,7 +36,9 @@ public interface TaskManager {
 
     void updateTask(Task newTask);
 
-    TaskManagerStatus getTaskManagerStatus();
+    void updateEpic(Epic epic);
+
+    void updateSubTask(SubTask subTask);
 
     int getTaskCount();
 }

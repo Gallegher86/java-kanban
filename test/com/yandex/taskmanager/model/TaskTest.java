@@ -1,6 +1,8 @@
 package com.yandex.taskmanager.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
 class TaskTest {
@@ -24,12 +26,16 @@ class TaskTest {
         assertEquals(999 , task1.getId(),
                 "id задачи должен поменяться на 999.");
 
-        task1.setId(0);
+        IllegalArgumentException zeroException = assertThrows(IllegalArgumentException.class, () -> task1.setId(0));
+        assertTrue(zeroException.getMessage().contains("0"),
+                "Сообщение об ошибке должно содержать число 0.");
         assertEquals(999 , task1.getId(),
-                "id не должен меняться при попытке установить 0.");
+                "id задачи не должен поменяться.");
 
-        task1.setId(-999);
+        IllegalArgumentException negativeException = assertThrows(IllegalArgumentException.class, () -> task1.setId(-999));
+        assertTrue(negativeException.getMessage().contains("отрицательным"),
+                "Сообщение об ошибке должно содержать слово 'отрицательным'.");
         assertEquals(999 , task1.getId(),
-                "id не должен меняться при попытке установить отрицательное значение.");
+                "id задачи не должен поменяться.");
     }
 }
