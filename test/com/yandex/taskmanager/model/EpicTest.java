@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class EpicTest {
     @Test
-    public void mustBeEqualWhenIdsAreSame () {
+    public void mustBeEqualWhenIdsAreSame() {
         Epic epic1 = new Epic(10, "Имя1", "Описание1");
         Epic epic2 = new Epic(10, "Имя2", "Описание2");
 
@@ -20,7 +20,7 @@ class EpicTest {
     }
 
     @Test
-    public void mustNotAddItselfAsSubTaskId () {
+    public void mustNotAddItselfAsSubTaskId() {
         Epic epic1 = new Epic(10, "Имя1", "Описание1");
 
         IllegalArgumentException ownIdException = assertThrows(IllegalArgumentException.class,

@@ -376,7 +376,7 @@ public class Main {
                         printTaskInfo(manager.getSubTasks());
                         manager.updateSubTask(makeSubTaskForUpdate(scanner));
                         System.out.println("Подзадача обновлена.");
-                    } catch(IllegalArgumentException ex) {
+                    } catch (IllegalArgumentException ex) {
                         System.out.println("Ошибка при обновлении подзадачи: " + ex.getMessage());
                         System.out.println("Попробуйте ввести данные ещё раз.");
                     }
@@ -480,7 +480,7 @@ public class Main {
         return status;
     }
 
-    private static void printTaskInfo (List<? extends Task> taskList) {
+    private static void printTaskInfo(List<? extends Task> taskList) {
         System.out.println("Список сохраненных задач:");
         System.out.println("-".repeat(100));
         for (Task task : taskList) {
@@ -501,7 +501,7 @@ public class Main {
         }
     }
 
-    private static List<Integer> getIds (List<? extends Task> taskList) {
+    private static List<Integer> getIds(List<? extends Task> taskList) {
         List<Integer> idList = new ArrayList<>();
         for (Task task : taskList) {
             idList.add(task.getId());

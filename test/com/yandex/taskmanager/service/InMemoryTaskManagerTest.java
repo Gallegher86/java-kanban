@@ -40,7 +40,7 @@ class InMemoryTaskManagerTest {
 
         final Optional<Task> optionalTask = manager.getTaskById(task1.getId());
         final Optional<Task> optionalEpic = manager.getTaskById(epic1.getId());
-        final Optional<Task> optionalSubTask= manager.getTaskById(subTask1.getId());
+        final Optional<Task> optionalSubTask = manager.getTaskById(subTask1.getId());
 
         assertTrue(optionalTask.isPresent(), "Задача не находиться по id.");
         assertTrue(optionalEpic.isPresent(), "Эпик не находиться по id.");
@@ -91,9 +91,9 @@ class InMemoryTaskManagerTest {
 
     @Test
     public void addTaskMustThrowExceptionIfAddTaskWithStatusNotNew() {
-        Task notNewStatusTask = new Task(0,"Задача", "Описание", Status.IN_PROGRESS);
+        Task notNewStatusTask = new Task(0, "Задача", "Описание", Status.IN_PROGRESS);
         Epic notNewStatusEpic = new Epic("Эпик", "Описание");
-        SubTask notNewStatusSubTask = new SubTask(0,"Подзадача", "Описание", Status.IN_PROGRESS, 1);
+        SubTask notNewStatusSubTask = new SubTask(0, "Подзадача", "Описание", Status.IN_PROGRESS, 1);
         notNewStatusEpic.setStatus(Status.IN_PROGRESS);
 
         manager.addEpic(new Epic("Эпик", "Для подзадачи"));
@@ -131,9 +131,9 @@ class InMemoryTaskManagerTest {
 
     @Test
     public void addTaskMustThrowExceptionIfAddTaskWithExistingId() {
-        Task notNewIdTask = new Task(999,"Задача", "Описание");
-        Epic notNewIdEpic = new Epic(1000,"Эпик", "Описание");
-        SubTask notNewIdSubTask = new SubTask(1001,"Подзадача", "Описание", Status.DONE, 1);
+        Task notNewIdTask = new Task(999, "Задача", "Описание");
+        Epic notNewIdEpic = new Epic(1000, "Эпик", "Описание");
+        SubTask notNewIdSubTask = new SubTask(1001, "Подзадача", "Описание", Status.DONE, 1);
 
         manager.addEpic(new Epic("Эпик", "Для подзадачи"));
 
@@ -173,7 +173,7 @@ class InMemoryTaskManagerTest {
 
     @Test
     public void addTaskMustThrowExceptionIfAddSubTaskWithInvalidEpicId() {
-        SubTask invalidEpicIdSubTask = new SubTask ("Подзадача", "Описание", 999);
+        SubTask invalidEpicIdSubTask = new SubTask("Подзадача", "Описание", 999);
 
         IllegalArgumentException ex1 = assertThrows(IllegalArgumentException.class,
                 () -> manager.addSubTask(invalidEpicIdSubTask));
@@ -187,7 +187,7 @@ class InMemoryTaskManagerTest {
     public void addTaskMustThrowExceptionIfAddSubTaskAsItsOwnEpic() {
         Epic epic1 = new Epic("Эпик", "Описание");
         manager.addEpic(epic1);
-        SubTask subTask1 = new SubTask ("Подзадача1", "Описание", 1);
+        SubTask subTask1 = new SubTask("Подзадача1", "Описание", 1);
         manager.addSubTask(subTask1);
 
         SubTask subTaskAsOwnEpic = new SubTask("Подзадача1", "id подзадачи, вместо epicId", 2);
@@ -203,7 +203,7 @@ class InMemoryTaskManagerTest {
     @Test
     public void MustThrowExceptionIfUsingAddTaskMethodToAddEpicOrSubTask() {
         Epic epic1 = new Epic("Эпик", "Описание");
-        SubTask subTask1 = new SubTask ("Подзадача1", "Описание", epic1.getId());
+        SubTask subTask1 = new SubTask("Подзадача1", "Описание", epic1.getId());
 
         IllegalArgumentException ex1 = assertThrows(IllegalArgumentException.class,
                 () -> manager.addTask(epic1));
@@ -250,7 +250,7 @@ class InMemoryTaskManagerTest {
 
         manager.deleteTaskById(subTask1.getId());
 
-        checkTaskCountCustom(1,2, 2, 6);
+        checkTaskCountCustom(1, 2, 2, 6);
 
         assertFalse(manager.getAllTasks().contains(subTask1),
                 "Подзадача должна быть удален из списка задач.");
@@ -329,7 +329,7 @@ class InMemoryTaskManagerTest {
         createSixTaskListForTests();
 
         Task updateTask = new Task(task1.getId(), "ЗАДАЧА ОБНОВЛЕНА", "ЗАДАЧА ВЫПОЛНЕНА", Status.DONE);
-        Epic updateEpic = new Epic(epic1.getId(),"ЭПИК ОБНОВЛЕН", "ЭПИК ОБНОВЛЕН");
+        Epic updateEpic = new Epic(epic1.getId(), "ЭПИК ОБНОВЛЕН", "ЭПИК ОБНОВЛЕН");
         SubTask updateSubTask = new SubTask(subTask3.getId(), "ПОДЗАДАЧА ОБНОВЛЕНА", "ПОДЗАДАЧА ВЫПОЛНЕНА",
                 Status.DONE, epic2.getId());
 
@@ -339,9 +339,9 @@ class InMemoryTaskManagerTest {
 
         checkTaskCountForSixTasks();
 
-        final Optional <Task> optionalTask = manager.getTaskById(task1.getId());
-        final Optional <Task> optionalEpic = manager.getTaskById(epic1.getId());
-        final Optional <Task> optionalSubTask = manager.getTaskById(subTask3.getId());
+        final Optional<Task> optionalTask = manager.getTaskById(task1.getId());
+        final Optional<Task> optionalEpic = manager.getTaskById(epic1.getId());
+        final Optional<Task> optionalSubTask = manager.getTaskById(subTask3.getId());
 
         assertTrue(optionalTask.isPresent(), "Задача не находиться по id.");
         assertTrue(optionalEpic.isPresent(), "Эпик не находиться по id.");
@@ -396,7 +396,7 @@ class InMemoryTaskManagerTest {
     public void updateTaskMustThrowExceptionIfUpdatingTaskWithInvalidId() {
         createThreeTaskListForTests();
 
-        Task invalidIdTask = new Task(999,"ЗАДАЧА с несуществующим id", "описание", Status.DONE);
+        Task invalidIdTask = new Task(999, "ЗАДАЧА с несуществующим id", "описание", Status.DONE);
         Epic invalidIdEpic = new Epic(1000, "ЭПИК с несуществующим id", "описание");
         SubTask invalidIdSubTask = new SubTask(1001, "ПОДЗАДАЧА с несуществующим id",
                 "описание", Status.DONE, epic1.getId());
@@ -431,7 +431,7 @@ class InMemoryTaskManagerTest {
 
         final Epic initialEpic = (Epic) manager.getTaskById(1).orElseThrow();
 
-        Epic updateEpic = new Epic(1,"НОВЫЙ ЭПИК", "CHANGED");
+        Epic updateEpic = new Epic(1, "НОВЫЙ ЭПИК", "CHANGED");
         assertTrue(updateEpic.getSubTaskIdList().isEmpty(), "subTaskIdList эпика для передачи на " +
                 "обновление должен быть пустым.");
 
@@ -464,7 +464,7 @@ class InMemoryTaskManagerTest {
 
         final List<Task> tasksToCheck = manager.getAllTasks();
 
-        Epic updateEpicWithSubTaskIds = new Epic(1,"НОВЫЙ ЭПИК со своим subTaskIdList", "CHANGED");
+        Epic updateEpicWithSubTaskIds = new Epic(1, "НОВЫЙ ЭПИК со своим subTaskIdList", "CHANGED");
         List<Integer> updateEpicSubTaskIdList = new ArrayList<>();
         updateEpicSubTaskIdList.add(999);
         updateEpicSubTaskIdList.add(1000);
@@ -501,7 +501,7 @@ class InMemoryTaskManagerTest {
         createThreeTaskListForTests();
         Epic epic2 = new Epic("ЭПИК2", "описание");
         manager.addEpic(epic2);
-        SubTask subTask2 = new SubTask("ПОДЗАДАЧА 2 ЭПИКА","описание", 4);
+        SubTask subTask2 = new SubTask("ПОДЗАДАЧА 2 ЭПИКА", "описание", 4);
         manager.addSubTask(subTask2);
 
         final List<Task> tasksToCheck = manager.getAllTasks();
@@ -860,7 +860,7 @@ class InMemoryTaskManagerTest {
 
     //ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ.
     private void createSixTaskListForTests() {
-        Task newTask = new Task ("ЗАДАЧА", "Описание");
+        Task newTask = new Task("ЗАДАЧА", "Описание");
         Epic newEpic1 = new Epic("ЭПИК1", "Описание");
         Epic newEpic2 = new Epic("ЭПИК2", "Описание");
         manager.addTask(newTask);
@@ -913,7 +913,7 @@ class InMemoryTaskManagerTest {
     }
 
     private void checkTaskCountCustom(int tasks, int epics, int subTasks, int taskCount) {
-        assertEquals(tasks, manager.getTasks().size(), "В списке задач должно быть "  + tasks + " задач.");
+        assertEquals(tasks, manager.getTasks().size(), "В списке задач должно быть " + tasks + " задач.");
         assertEquals(epics, manager.getEpics().size(), "В списке эпиков должно быть " + epics + " эпиков.");
         assertEquals(subTasks, manager.getSubTasks().size(), "В списке подзадач должно быть " + subTasks + " подзадач.");
         assertEquals(taskCount, manager.getIdCounter(), "Счетчик менеджера должен быть равен " + taskCount + ".");

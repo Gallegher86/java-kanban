@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class TaskTest {
     @Test
-    public void mustBeEqualWhenIdsAreSame () {
+    public void mustBeEqualWhenIdsAreSame() {
         Task task1 = new Task(10, "Имя1", "Описание1");
         Task task2 = new Task(10, "Имя2", "Описание2");
 
