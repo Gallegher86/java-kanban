@@ -1,7 +1,8 @@
 package com.yandex.taskmanager.service;
 
 public class Managers {
-    private Managers(){}
+    private Managers() {
+    }
 
     public static TaskManager getDefaultTaskManager() {
         return new InMemoryTaskManager();
