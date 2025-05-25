@@ -40,5 +40,5 @@ public interface TaskManager {
 
     void updateSubTask(SubTask subTask);
 
-    int getTaskCount();
+    int getIdCounter();
 }

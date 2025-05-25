@@ -20,37 +20,13 @@ class EpicTest {
     }
 
     @Test
-    public void setIdMustNotSetNegativeOrZeroId () {
-        Epic epic1 = new Epic("Имя1", "Описание1");
-
-        assertEquals(0 , epic1.getId(),
-                "id нового эпика должен быть равен 0.");
-
-        epic1.setId(999);
-        assertEquals(999 , epic1.getId(),
-                "id эпика должен поменяться на 999.");
-
-        IllegalArgumentException zeroException = assertThrows(IllegalArgumentException.class, () -> epic1.setId(0));
-        assertTrue(zeroException.getMessage().contains("0"),
-                "Сообщение об ошибке должно содержать число 0.");
-        assertEquals(999 , epic1.getId(),
-                "id эпика не должен поменяться.");
-
-        IllegalArgumentException negativeException = assertThrows(IllegalArgumentException.class, () -> epic1.setId(-999));
-        assertTrue(negativeException.getMessage().contains("отрицательным"),
-                "Сообщение об ошибке должно содержать слово 'отрицательным'.");
-        assertEquals(999 , epic1.getId(),
-                "id эпика не должен поменяться.");
-    }
-
-    @Test
     public void mustNotAddItselfAsSubTaskId () {
         Epic epic1 = new Epic(10, "Имя1", "Описание1");
 
         IllegalArgumentException ownIdException = assertThrows(IllegalArgumentException.class,
                 () -> epic1.addSubTaskId(epic1.getId()));
-        assertTrue(ownIdException.getMessage().contains("эпика"),
-                "Сообщение об ошибке должно содержать слово 'эпика'.");
+        assertTrue(ownIdException.getMessage().contains("must not be equal to epicId"),
+                "Сообщение об ошибке должно содержать слово 'must not be equal to epicId'.");
         assertTrue(epic1.getSubTaskIdList().isEmpty(), "SubTaskIdList эпика должен быть пустым при " +
                 "добавлении в него его собственного id");
     }
@@ -61,15 +37,15 @@ class EpicTest {
 
         IllegalArgumentException negativeIdException = assertThrows(IllegalArgumentException.class,
                 () -> epic1.addSubTaskId(-999));
-        assertTrue(negativeIdException.getMessage().contains("отрицателен"),
-                "Сообщение об ошибке должно содержать слово 'отрицателен'.");
+        assertTrue(negativeIdException.getMessage().contains("be negative"),
+                "Сообщение об ошибке должно содержать слово 'be negative'.");
         assertTrue(epic1.getSubTaskIdList().isEmpty(), "SubTaskIdList эпика должен быть пустым при " +
                 "добавлении в него отрицательного id.");
 
         IllegalArgumentException zeroIdException = assertThrows(IllegalArgumentException.class,
                 () -> epic1.addSubTaskId(0));
-        assertTrue(zeroIdException.getMessage().contains("0"),
-                "Сообщение об ошибке должно содержать слово '0'.");
+        assertTrue(zeroIdException.getMessage().contains("zero"),
+                "Сообщение об ошибке должно содержать слово 'zero'.");
         assertTrue(epic1.getSubTaskIdList().isEmpty(), "SubTaskIdList эпика должен быть пустым при " +
                 "добавлении в него id равного 0.");
     }
@@ -83,8 +59,8 @@ class EpicTest {
 
         IllegalArgumentException ownIdException = assertThrows(IllegalArgumentException.class,
                 () -> epic1.setSubTaskIdList(subTaskIdList));
-        assertTrue(ownIdException.getMessage().contains("эпика"),
-                "Сообщение об ошибке должно содержать слово 'эпика'.");
+        assertTrue(ownIdException.getMessage().contains("epicId"),
+                "Сообщение об ошибке должно содержать слово 'epicId'.");
         assertTrue(epic1.getSubTaskIdList().isEmpty(), "SubTaskIdList эпика должен быть пустым при " +
                 "замене его на SubTaskIdList с id эпика");
     }
@@ -98,8 +74,8 @@ class EpicTest {
 
         IllegalArgumentException negativeIdException = assertThrows(IllegalArgumentException.class,
                 () -> epic1.setSubTaskIdList(negativeSubTaskIdList));
-        assertTrue(negativeIdException.getMessage().contains("отрицательный"),
-                "Сообщение об ошибке должно содержать слово 'отрицательный'.");
+        assertTrue(negativeIdException.getMessage().contains("negative"),
+                "Сообщение об ошибке должно содержать слово 'negative'.");
         assertTrue(epic1.getSubTaskIdList().isEmpty(), "SubTaskIdList эпика должен быть пустым при " +
                 "замене его на SubTaskIdList с отрицательным id.");
     }
@@ -113,8 +89,8 @@ class EpicTest {
 
         IllegalArgumentException zeroIdException = assertThrows(IllegalArgumentException.class,
                 () -> epic1.setSubTaskIdList(zeroSubTaskIdList));
-        assertTrue(zeroIdException.getMessage().contains("0"),
-                "Сообщение об ошибке должно содержать слово '0'.");
+        assertTrue(zeroIdException.getMessage().contains("zero"),
+                "Сообщение об ошибке должно содержать слово 'zero'.");
         assertTrue(epic1.getSubTaskIdList().isEmpty(), "SubTaskIdList эпика должен быть пустым при " +
                 "замене его на SubTaskIdList с id равным 0.");
     }

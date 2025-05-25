@@ -8,22 +8,23 @@ public class SubTask extends Task {
         this.epicId = epicId;
     }
 
+    public SubTask(int id, String name, String description, Integer epicId) {
+        super(id, name, description);
+        this.epicId = epicId;
+    }
+
     public SubTask(int id, String name, String description, Status status, Integer epicId) {
         super(id, name, description, status);
         this.epicId = epicId;
     }
 
-    public int getEpicId() {
-        return epicId;
+    public SubTask(SubTask other) {
+        super(other.id, other.name, other.description, other.status);
+        this.epicId = other.epicId;
     }
 
-    @Override
-    public void setId(int id) {
-        if (id > 0 && id != epicId) {
-            super.id = id;
-        } else {
-            throw new IllegalArgumentException("Попытка установить ID равным epicId, 0 или отрицательным: " + id);
-        }
+    public int getEpicId() {
+        return epicId;
     }
 
     @Override

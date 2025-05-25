@@ -14,11 +14,16 @@ public class Epic extends Task {
         super(id, name, description);
     }
 
+    public Epic(Epic other) {
+        super(other.id, other.name, other.description, other.status);
+        this.subTaskIds = other.subTaskIds;
+    }
+
     public void addSubTaskId(int id) {
         if (id != this.id && id > 0) {
             subTaskIds.add(id);
         } else {
-            throw new IllegalArgumentException("Переданный subTaskId, равен ID эпика, 0 или отрицателен: " + id);
+            throw new IllegalArgumentException("SubTaskId must not be equal to epicId, zero or be negative: " + id);
         }
     }
 
@@ -27,12 +32,24 @@ public class Epic extends Task {
     }
 
     public void setSubTaskIdList(List<Integer> newList) {
+        if (newList == null) {
+            throw new NullPointerException("The List provided to Epic is null.");
+        }
+
         for (Integer checkId : newList) {
             if (checkId == this.id || checkId <= 0) {
-                throw new IllegalArgumentException("В переданном subTaskIds, есть ID эпика или 0, или отрицательный ID: " + checkId);
+                throw new IllegalArgumentException("SubTaskIdList must not contain epicId, zero or negative Id: " + checkId);
             }
         }
         subTaskIds = new ArrayList<>(newList);
+    }
+
+    public void setStatus(Status status) {
+        if (status == null) {
+            throw new NullPointerException("The Status provided to Epic is null.");
+        }
+
+        this.status = status;
     }
 
     public List<Integer> getSubTaskIdList() {

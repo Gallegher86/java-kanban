@@ -2,9 +2,11 @@ import com.yandex.taskmanager.model.Task;
 import com.yandex.taskmanager.model.Epic;
 import com.yandex.taskmanager.model.SubTask;
 import com.yandex.taskmanager.model.Status;
+
 import com.yandex.taskmanager.service.TaskManager;
 import com.yandex.taskmanager.service.Managers;
 
+import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.List;
 import java.util.Optional;
@@ -32,6 +34,27 @@ public class Main {
         manager.addSubTask(testSubTask2);
         manager.addSubTask(testSubTask3);
         manager.addSubTask(testSubTask4);
+
+        for (int i = 1; i < 9; i++) {
+            manager.getTaskById(i);
+        }
+        System.out.println(getIds(manager.getHistory()));
+
+        for (int i = 8; i > 0; i--) {
+            manager.getTaskById(i);
+        }
+        System.out.println(getIds(manager.getHistory()));
+
+        manager.getTaskById(7);
+        manager.getTaskById(6);
+        manager.getTaskById(5);
+        System.out.println(getIds(manager.getHistory()));
+
+        manager.deleteTaskById(1);
+        System.out.println(getIds(manager.getHistory()));
+
+        manager.deleteTaskById(3);
+        System.out.println(getIds(manager.getHistory()));
 
         runMainMenu(manager, scanner);
     }
@@ -476,6 +499,14 @@ public class Main {
                 System.out.println("-".repeat(100));
             }
         }
+    }
+
+    private static List<Integer> getIds (List<? extends Task> taskList) {
+        List<Integer> idList = new ArrayList<>();
+        for (Task task : taskList) {
+            idList.add(task.getId());
+        }
+        return idList;
     }
 }
 
