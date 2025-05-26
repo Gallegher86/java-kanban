@@ -32,10 +32,10 @@ class InMemoryHistoryManagerTest {
     }
 
     @Test
-    public void addHistoryWorksProperly() {
+    public void addWorksProperly() {
         Task task = new Task(1, "ЗАДАЧА №1", "ОПИСАНИЕ 1");
 
-        manager.addHistory(task);
+        manager.add(task);
         Task taskInManager = manager.getHistory().getFirst();
 
         assertTrue(manager.getHistory().contains(task),
@@ -47,7 +47,7 @@ class InMemoryHistoryManagerTest {
 
         Task updatedTask = new Task(1, "ЗАДАЧА ИЗМЕНЕНА", "ОПИСАНИЕ ИЗМЕНЕНО", Status.DONE);
 
-        manager.addHistory(updatedTask);
+        manager.add(updatedTask);
         taskInManager = manager.getHistory().getFirst();
 
         assertTrue(manager.getHistory().contains(updatedTask), "Задача должна быть записана в список менеджера.");
@@ -59,14 +59,14 @@ class InMemoryHistoryManagerTest {
     }
 
     @Test
-    public void addHistoryMustMoveUpdatedTaskToTheEndOfList() {
+    public void addMustMoveUpdatedTaskToTheEndOfList() {
         createTenTaskListForTests();
 
         assertEquals(10, manager.getHistory().size(), "В менеджере должно быть записано десять задач.");
         assertEquals(1, manager.getHistory().get(0).getId(), "Задача с id = 1 должна быть в начале списка.");
         assertEquals(10, manager.getHistory().get(9).getId(), "Задача с id = 10 должна быть в конце списка.");
 
-        manager.addHistory(checkList.getFirst());
+        manager.add(checkList.getFirst());
         assertEquals(10, manager.getHistory().size(), "В менеджере должно быть записано десять задач.");
         assertEquals(2, manager.getHistory().get(0).getId(), "Задача с id = 2 должна быть в начале списка.");
         assertEquals(10, manager.getHistory().get(8).getId(), "Задача с id = 10 должна быть предпоследней.");
@@ -74,11 +74,11 @@ class InMemoryHistoryManagerTest {
     }
 
     @Test
-    public void addHistoryMustThrowExceptionIfAddNullTask() {
+    public void addMustThrowExceptionIfAddNullTask() {
         createTenTaskListForTests();
 
         NullPointerException ex1 = assertThrows(NullPointerException.class,
-                () -> manager.addHistory(null));
+                () -> manager.add(null));
         assertTrue(ex1.getMessage().contains("null"),
                 "Сообщение об ошибке должно содержать слово 'null'.");
 
@@ -95,7 +95,7 @@ class InMemoryHistoryManagerTest {
         List<Task> newCheckList = new ArrayList<>();
 
         for (int i = 9; i >= 0; i--) {
-            manager.addHistory(checkList.get(i));
+            manager.add(checkList.get(i));
             newCheckList.add(checkList.get(i));
         }
 
@@ -104,10 +104,10 @@ class InMemoryHistoryManagerTest {
     }
 
     @Test
-    public void removeHistoryWorksProperly() {
+    public void removeWorksProperly() {
         createTenTaskListForTests();
 
-        manager.removeHistory(5);
+        manager.remove(5);
         checkList = manager.getHistory();
         assertEquals(9, checkList.size(), "В менеджер должно быть записано девять задач.");
         boolean isTaskFound = false;
@@ -120,7 +120,7 @@ class InMemoryHistoryManagerTest {
         }
         assertFalse(isTaskFound, "Задача с id = 5 должна быть удалена из менеджера.");
 
-        manager.removeHistory(10);
+        manager.remove(10);
         checkList = manager.getHistory();
 
         assertEquals(8, checkList.size(), "В менеджер должно быть записано восемь задач.");
@@ -132,7 +132,7 @@ class InMemoryHistoryManagerTest {
         }
         assertFalse(isTaskFound, "Задача с id = 10 должна быть удалена из менеджера.");
 
-        manager.removeHistory(1);
+        manager.remove(1);
         checkList = manager.getHistory();
 
         assertEquals(7, checkList.size(), "В менеджер должно быть записано семь задач.");
@@ -146,16 +146,16 @@ class InMemoryHistoryManagerTest {
     }
 
     @Test
-    public void removeHistoryMustDoNothingWithWrongId() {
+    public void removeMustDoNothingWithWrongId() {
         createTenTaskListForTests();
 
-        manager.removeHistory(-999);
+        manager.remove(-999);
         checkTasksUnchangedCustom(manager.getHistory(), checkList);
 
-        manager.removeHistory(0);
+        manager.remove(0);
         checkTasksUnchangedCustom(manager.getHistory(), checkList);
 
-        manager.removeHistory(999);
+        manager.remove(999);
         checkTasksUnchangedCustom(manager.getHistory(), checkList);
     }
 
@@ -173,7 +173,7 @@ class InMemoryHistoryManagerTest {
     private void createTenTaskListForTests() {
         for (int i = 1; i <= 10; i++) {
             Task task = new Task(i, ("ЗАДАЧА №" + i), ("ОПИСАНИЕ " + i));
-            manager.addHistory(task);
+            manager.add(task);
             checkList.add(task);
         }
     }

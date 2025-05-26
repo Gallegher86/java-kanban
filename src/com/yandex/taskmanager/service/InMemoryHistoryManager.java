@@ -12,7 +12,7 @@ public class InMemoryHistoryManager implements HistoryManager {
     private Node<Task> tail;
     private final Map<Integer, Node<Task>> nodesMap = new HashMap<>();
 
-    public void addHistory(Task task) {
+    public void add(Task task) {
         if (task == null) {
             throw new NullPointerException("The Task provided to History Manager is null.");
         }
@@ -36,7 +36,7 @@ public class InMemoryHistoryManager implements HistoryManager {
         return historyList;
     }
 
-    public void removeHistory(int id) {
+    public void remove(int id) {
         Node<Task> node = nodesMap.remove(id);
 
         if (node != null) {
@@ -108,5 +108,3 @@ public class InMemoryHistoryManager implements HistoryManager {
         }
     }
 }
-
-
