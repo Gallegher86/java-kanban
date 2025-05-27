@@ -45,18 +45,6 @@ public class InMemoryHistoryManager implements HistoryManager {
     }
 
     public void clearHistory() {
-        Node<Task> currentNode = head;
-
-        while (currentNode != null) {
-            Node<Task> nextNode = currentNode.next;
-
-            currentNode.data = null;
-            currentNode.prev = null;
-            currentNode.next = null;
-
-            currentNode = nextNode;
-        }
-
         head = null;
         tail = null;
         nodesMap.clear();
