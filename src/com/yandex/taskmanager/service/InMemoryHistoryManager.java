@@ -14,7 +14,7 @@ public class InMemoryHistoryManager implements HistoryManager {
 
     public void add(Task task) {
         if (task == null) {
-            throw new NullPointerException("The Task provided to History Manager is null.");
+            return;
         }
 
         if (nodesMap.containsKey(task.getId())) {

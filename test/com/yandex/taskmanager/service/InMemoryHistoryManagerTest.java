@@ -9,7 +9,6 @@ import com.yandex.taskmanager.model.Status;
 import java.util.List;
 import java.util.ArrayList;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -74,13 +73,10 @@ class InMemoryHistoryManagerTest {
     }
 
     @Test
-    public void addMustThrowExceptionIfAddNullTask() {
+    public void addMustDoNothingIfAddNullTask() {
         createTenTaskListForTests();
 
-        NullPointerException ex1 = assertThrows(NullPointerException.class,
-                () -> manager.add(null));
-        assertTrue(ex1.getMessage().contains("null"),
-                "Сообщение об ошибке должно содержать слово 'null'.");
+        manager.add(null);
 
         checkTasksUnchangedCustom(manager.getHistory(), checkList);
     }
