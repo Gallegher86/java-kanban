@@ -415,7 +415,7 @@ public class Main {
         System.out.print("Введите описание подзадачи: ");
         String description = scanner.nextLine().trim();
         System.out.print("Введите идентификатор эпика к которому относится подзадача: ");
-        Integer epicId = scanner.nextInt();
+        int epicId = scanner.nextInt();
         scanner.nextLine();
         return new SubTask(name, description, epicId);
     }
@@ -455,7 +455,7 @@ public class Main {
         String description = scanner.nextLine().trim();
         Status status = setStatus(scanner);
         System.out.print("Введите идентификатор эпика к которому относится подзадача: ");
-        Integer epicId = scanner.nextInt();
+        int epicId = scanner.nextInt();
         scanner.nextLine();
 
         return new SubTask(id, name, description, status, epicId);

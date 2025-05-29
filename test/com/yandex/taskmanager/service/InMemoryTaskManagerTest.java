@@ -17,7 +17,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
 
 class InMemoryTaskManagerTest {
     TaskManager manager;
@@ -92,9 +91,9 @@ class InMemoryTaskManagerTest {
     @Test
     public void addTaskMustThrowExceptionIfAddTaskWithStatusNotNew() {
         Task notNewStatusTask = new Task(0, "Задача", "Описание", Status.IN_PROGRESS);
-        Epic notNewStatusEpic = new Epic("Эпик", "Описание");
+        Epic newEpic = new Epic("Эпик", "Описание");
         SubTask notNewStatusSubTask = new SubTask(0, "Подзадача", "Описание", Status.IN_PROGRESS, 1);
-        notNewStatusEpic.setStatus(Status.IN_PROGRESS);
+        Epic notNewStatusEpic = new Epic(newEpic, Status.IN_PROGRESS);
 
         manager.addEpic(new Epic("Эпик", "Для подзадачи"));
 
@@ -116,10 +115,10 @@ class InMemoryTaskManagerTest {
 
     @Test
     public void addTaskMustThrowExceptionIfAddEpicWithExistingSubTaskIdList() {
-        Epic notEmptyEpic = new Epic("Эпик", "Описание");
+        Epic newEpic = new Epic("Эпик", "Описание");
         List<Integer> subTaskIds = new ArrayList<>();
         subTaskIds.add(999);
-        notEmptyEpic.setSubTaskIdList(subTaskIds);
+        Epic notEmptyEpic = new Epic(newEpic, subTaskIds);
 
         IllegalArgumentException ex1 = assertThrows(IllegalArgumentException.class,
                 () -> manager.addEpic(notEmptyEpic));
@@ -252,11 +251,13 @@ class InMemoryTaskManagerTest {
 
         checkTaskCountCustom(1, 2, 2, 6);
 
+        Epic epicInManager = (Epic) manager.getTaskById(epic1.getId()).orElseThrow();
+
         assertFalse(manager.getAllTasks().contains(subTask1),
                 "Подзадача должна быть удален из списка задач.");
         assertFalse(manager.getSubTasks().contains(subTask1),
                 "Подзадача должны быть удалены из списка подзадач.");
-        assertFalse(epic1.getSubTaskIdList().contains(subTask1.getId()),
+        assertFalse(epicInManager.getSubTaskIdList().contains(subTask1.getId()),
                 "id подзадачи должно быть удалено из списке эпика.");
     }
 
@@ -420,6 +421,13 @@ class InMemoryTaskManagerTest {
 
     @Test
     public void updateTaskMustCorrectlyTransferEpicSubTaskIdList() {
+        List<Integer> threeSubTaskIdList = new ArrayList<>();
+        threeSubTaskIdList.add(2);
+        threeSubTaskIdList.add(3);
+        threeSubTaskIdList.add(4);
+        List<Integer> fourSubTaskIdList = new ArrayList<>(threeSubTaskIdList);
+        fourSubTaskIdList.add(5);
+
         Epic epic1 = new Epic("ЭПИК", "описание");
         manager.addEpic(epic1);
         SubTask subTask1 = new SubTask("ПОДЗАДАЧА", "описание", 1);
@@ -429,26 +437,37 @@ class InMemoryTaskManagerTest {
         manager.addSubTask(subTask2);
         manager.addSubTask(subTask3);
 
-        final Epic initialEpic = (Epic) manager.getTaskById(1).orElseThrow();
+        Epic epicInManager = (Epic) manager.getTaskById(1).orElseThrow();
+        assertEquals(threeSubTaskIdList, epicInManager.getSubTaskIdList(),
+                "В начальный Epic должны записаться id трех подзадач.");
 
-        Epic updateEpic = new Epic(1, "НОВЫЙ ЭПИК", "CHANGED");
+        Epic updateEpic = new Epic(1, "ОБНОВЛЕНЫЙ ЭПИК", "CHANGED");
         assertTrue(updateEpic.getSubTaskIdList().isEmpty(), "subTaskIdList эпика для передачи на " +
                 "обновление должен быть пустым.");
 
         manager.updateEpic(updateEpic);
-
-        final Epic epicToCheck = (Epic) manager.getTaskById(1).orElseThrow();
-
-        assertEquals(updateEpic.getSubTaskIdList(), initialEpic.getSubTaskIdList(),
-                "Update Epic должен скопировать в новый эпик subTaskIdList прошлого экземпляра эпика.");
-        assertEquals(epicToCheck.getSubTaskIdList(), initialEpic.getSubTaskIdList(),
-                "Update Epic должен скопировать в новый эпик subTaskIdList прошлого экземпляра эпика.");
-        assertEquals(epicToCheck.getName(), updateEpic.getName(),
-                "Имя эпика должно измениться.");
-        assertEquals(epicToCheck.getDescription(), updateEpic.getDescription(),
-                "Описание эпика должно измениться.");
-
         checkTaskCountCustom(0, 1, 3, 4);
+
+        epicInManager = (Epic) manager.getTaskById(1).orElseThrow();
+
+        assertEquals(threeSubTaskIdList, epicInManager.getSubTaskIdList(),
+                "Update Epic должен скопировать в новый эпик subTaskIdList прошлого экземпляра эпика.");
+        assertEquals(updateEpic.getName(), epicInManager.getName(),
+                "Имя эпика должно измениться.");
+        assertEquals(epicInManager.getDescription(), updateEpic.getDescription(),
+                "Описание эпика должно измениться.");
+        assertEquals(Status.NEW, epicInManager.getStatus(),
+                "Статус эпика не должен измениться.");
+
+        SubTask subTask4 = new SubTask("ПОДЗАДАЧА", "описание", 1);
+
+        manager.addSubTask(subTask4);
+        checkTaskCountCustom(0, 1, 4, 5);
+
+        epicInManager = (Epic) manager.getTaskById(1).orElseThrow();
+
+        assertEquals(fourSubTaskIdList, epicInManager.getSubTaskIdList(),
+                "В subTaskIdList эпика должна быть записана новая подзадача.");
     }
 
     @Test
@@ -464,15 +483,15 @@ class InMemoryTaskManagerTest {
 
         final List<Task> tasksToCheck = manager.getAllTasks();
 
-        Epic updateEpicWithSubTaskIds = new Epic(1, "НОВЫЙ ЭПИК со своим subTaskIdList", "CHANGED");
-        List<Integer> updateEpicSubTaskIdList = new ArrayList<>();
-        updateEpicSubTaskIdList.add(999);
-        updateEpicSubTaskIdList.add(1000);
-        updateEpicSubTaskIdList.add(1001);
-        updateEpicWithSubTaskIds.setSubTaskIdList(updateEpicSubTaskIdList);
+        Epic updatingEpic = new Epic(1, "НОВЫЙ ЭПИК со своим subTaskIdList", "CHANGED");
+        List<Integer> updatingEpicSubTaskIdList = new ArrayList<>();
+        updatingEpicSubTaskIdList.add(999);
+        updatingEpicSubTaskIdList.add(1000);
+        updatingEpicSubTaskIdList.add(1001);
+        Epic updatingEpicWithSubTaskIds = new Epic(updatingEpic, updatingEpicSubTaskIdList);
 
         IllegalArgumentException ex1 = assertThrows(IllegalArgumentException.class,
-                () -> manager.updateEpic(updateEpicWithSubTaskIds));
+                () -> manager.updateEpic(updatingEpicWithSubTaskIds));
         assertTrue(ex1.getMessage().contains("subTaskIdList must be empty"),
                 "Сообщение об ошибке должно содержать слово 'subTaskIdList must be empty'.");
 
@@ -582,13 +601,13 @@ class InMemoryTaskManagerTest {
 
     //ТЕСТЫ resetEpicStatus.
     @Test
-    public void resetEpicStatusWorksProperly() {
+    public void updateEpicStatusWorksProperly() {
         Epic epic1 = new Epic("ЭПИК", "описание");
         manager.addEpic(epic1);
 
 
-        Epic savedEpic = (Epic) manager.getTaskById(1).orElseThrow();
-        assertEquals(Status.NEW, savedEpic.getStatus(),
+        Epic epicInManager = (Epic) manager.getTaskById(1).orElseThrow();
+        assertEquals(Status.NEW, epicInManager.getStatus(),
                 "Статус нового эпика должен быть NEW.");
 
         SubTask subTask1 = new SubTask("ПОДЗАДАЧА1", "описание", 1);
@@ -596,8 +615,8 @@ class InMemoryTaskManagerTest {
 
         manager.addSubTask(subTask1);
         manager.addSubTask(subTask2);
-        savedEpic = (Epic) manager.getTaskById(1).orElseThrow();
-        assertEquals(Status.NEW, savedEpic.getStatus(),
+        epicInManager = (Epic) manager.getTaskById(1).orElseThrow();
+        assertEquals(Status.NEW, epicInManager.getStatus(),
                 "Статус эпика после добавления новых подзадач должен быть NEW.");
 
         SubTask updateTask1 = new SubTask(2,
@@ -606,178 +625,39 @@ class InMemoryTaskManagerTest {
                 "ПОДЗАДАЧА2 ОБНОВЛЕНА", "описание", Status.IN_PROGRESS, 1);
 
         manager.updateSubTask(updateTask1);
-        savedEpic = (Epic) manager.getTaskById(1).orElseThrow();
-        assertEquals(Status.IN_PROGRESS, savedEpic.getStatus(),
+        epicInManager = (Epic) manager.getTaskById(1).orElseThrow();
+        assertEquals(Status.IN_PROGRESS, epicInManager.getStatus(),
                 "Статус эпика после должен быть IN_PROGRESS пока все задачи не NEW и не DONE.");
         manager.updateSubTask(updateTask2);
-        savedEpic = (Epic) manager.getTaskById(1).orElseThrow();
-        assertEquals(Status.IN_PROGRESS, savedEpic.getStatus(),
+        epicInManager = (Epic) manager.getTaskById(1).orElseThrow();
+        assertEquals(Status.IN_PROGRESS, epicInManager.getStatus(),
                 "Статус эпика после должен быть IN_PROGRESS пока все задачи не NEW и не DONE.");
 
         SubTask updateSubTask2_2 = new SubTask(3,
                 "ПОДЗАДАЧА2 ВЫПОЛНЕНА", "описание", Status.DONE, 1);
 
         manager.updateSubTask(updateSubTask2_2);
-        savedEpic = (Epic) manager.getTaskById(1).orElseThrow();
-        assertEquals(Status.DONE, savedEpic.getStatus(),
+        epicInManager = (Epic) manager.getTaskById(1).orElseThrow();
+        assertEquals(Status.DONE, epicInManager.getStatus(),
                 "Статус эпика должен быть DONE если все задачи DONE.");
 
         SubTask newSubTask = new SubTask("ПОДЗАДАЧА3", "описание", 1);
 
         manager.addSubTask(newSubTask);
-        savedEpic = (Epic) manager.getTaskById(1).orElseThrow();
-        assertEquals(Status.IN_PROGRESS, savedEpic.getStatus(),
+        epicInManager = (Epic) manager.getTaskById(1).orElseThrow();
+        assertEquals(Status.IN_PROGRESS, epicInManager.getStatus(),
                 "Статус эпика DONE должен смениться на IN_PROGRESS при добавлении NEW задачи.");
 
         manager.deleteTaskById(4);
-        savedEpic = (Epic) manager.getTaskById(1).orElseThrow();
-        assertEquals(Status.DONE, savedEpic.getStatus(),
+        epicInManager = (Epic) manager.getTaskById(1).orElseThrow();
+        assertEquals(Status.DONE, epicInManager.getStatus(),
                 "Статус эпика IN_PROGRESS должен смениться на DONE при удалении NEW задачи.");
 
         manager.deleteTaskById(2);
         manager.deleteTaskById(3);
-        savedEpic = (Epic) manager.getTaskById(1).orElseThrow();
-        assertEquals(Status.NEW, savedEpic.getStatus(),
+        epicInManager = (Epic) manager.getTaskById(1).orElseThrow();
+        assertEquals(Status.NEW, epicInManager.getStatus(),
                 "Статус эпика DONE должен смениться на NEW при удалении всех задач.");
-    }
-
-    //ТЕСТЫ на инкапсуляцию
-    @Test
-    public void changesInEpicToAddMustNotAffectEpicInTaskManager() {
-        Epic externalEpic = new Epic("ИМЯ", "ОПИСАНИЕ");
-        manager.addEpic(externalEpic);
-
-        externalEpic.setStatus(Status.DONE);
-        List<Integer> subTaskIds = new ArrayList<>();
-        subTaskIds.add(2);
-        subTaskIds.add(3);
-        subTaskIds.add(999);
-        externalEpic.setSubTaskIdList(subTaskIds);
-
-        Epic inManagerEpic = (Epic) manager.getTaskById(1).orElseThrow();
-
-        assertNotSame(externalEpic, inManagerEpic, "Эпики не должны совпадать по хэшу.");
-        assertEquals(0, externalEpic.getId(),
-                "До добавления в менеджер id должно быть равно 0.");
-        assertEquals(1, inManagerEpic.getId(),
-                "При добавлении в менеджер id должно быть равно 1.");
-
-        assertEquals(externalEpic.getName(), inManagerEpic.getName(),
-                "Имя эпика должно совпадать.");
-        assertEquals(externalEpic.getDescription(), inManagerEpic.getDescription(),
-                "Описание эпика должно совпадать.");
-
-        assertEquals(Status.DONE, externalEpic.getStatus(),
-                "Статус эпика вне менеджера должен измениться на DONE.");
-        assertEquals(Status.NEW, inManagerEpic.getStatus(),
-                "Статус эпика в менеджере должен быть NEW.");
-
-        assertFalse(externalEpic.getSubTaskIdList().isEmpty(),
-                "В список subTaskIds эпика вне менеджера должны быть добавлены id.");
-        assertTrue(inManagerEpic.getSubTaskIdList().isEmpty(),
-                "Список subTaskIds эпика в менеджере должен быть пустым.");
-    }
-
-    @Test
-    public void changesInEpicToUpdateMustNotAffectEpicInTaskManager() {
-        manager.addEpic(new Epic("ИМЯ", "ОПИСАНИЕ"));
-
-        Epic externalEpic = new Epic(1, "ИМЯ ИЗМЕНЕНО", "ОПИСАНИЕ ИЗМЕНЕНО");
-        manager.updateEpic(externalEpic);
-
-        externalEpic.setStatus(Status.DONE);
-        List<Integer> subTaskIds = new ArrayList<>();
-        subTaskIds.add(2);
-        subTaskIds.add(3);
-        subTaskIds.add(999);
-        externalEpic.setSubTaskIdList(subTaskIds);
-
-        Epic inManagerEpic = (Epic) manager.getTaskById(1).orElseThrow();
-
-        assertEquals(externalEpic, inManagerEpic, "Эпики должны совпадать по хэшу.");
-        assertEquals(externalEpic.getId(), inManagerEpic.getId(),
-                "id эпика должно совпадать.");
-        assertEquals(externalEpic.getName(), inManagerEpic.getName(),
-                "Имя эпика должно совпадать.");
-        assertEquals(externalEpic.getDescription(), inManagerEpic.getDescription(),
-                "Описание эпика должно совпадать.");
-
-        assertEquals(Status.DONE, externalEpic.getStatus(),
-                "Статус эпика вне менеджера должен измениться на DONE.");
-        assertEquals(Status.NEW, inManagerEpic.getStatus(),
-                "Статус эпика в менеджере должен быть NEW.");
-
-        assertFalse(externalEpic.getSubTaskIdList().isEmpty(),
-                "В список subTaskIds эпика вне менеджера должны быть добавлены id.");
-        assertTrue(inManagerEpic.getSubTaskIdList().isEmpty(),
-                "Список subTaskIds эпика в менеджере должен быть пустым.");
-    }
-
-    @Test
-    public void changesInReturnedEpicMustNotAffectEpicInTaskManager() {
-        manager.addEpic(new Epic("ИМЯ", "ОПИСАНИЕ"));
-
-        Epic externalEpic = (Epic) manager.getTaskById(1).orElseThrow();
-        externalEpic.setStatus(Status.DONE);
-        List<Integer> subTaskIds = new ArrayList<>();
-        subTaskIds.add(2);
-        subTaskIds.add(3);
-        subTaskIds.add(999);
-        externalEpic.setSubTaskIdList(subTaskIds);
-
-        Epic inManagerEpic = (Epic) manager.getTaskById(1).orElseThrow();
-
-        assertEquals(externalEpic, inManagerEpic, "Эпики должны совпадать по хэшу.");
-        assertEquals(externalEpic.getId(), inManagerEpic.getId(),
-                "id эпика должно совпадать.");
-        assertEquals(externalEpic.getName(), inManagerEpic.getName(),
-                "Имя эпика должно совпадать.");
-        assertEquals(externalEpic.getDescription(), inManagerEpic.getDescription(),
-                "Описание эпика должно совпадать.");
-
-        assertEquals(Status.DONE, externalEpic.getStatus(),
-                "Статус эпика вне менеджера должен измениться на DONE.");
-        assertEquals(Status.NEW, inManagerEpic.getStatus(),
-                "Статус эпика в менеджере должен быть NEW.");
-
-        assertFalse(externalEpic.getSubTaskIdList().isEmpty(),
-                "В список subTaskIds эпика вне менеджера должны быть добавлены id.");
-        assertTrue(inManagerEpic.getSubTaskIdList().isEmpty(),
-                "Список subTaskIds эпика в менеджере должен быть пустым.");
-    }
-
-    @Test
-    public void changesInEpicTakenFromHistoryManagerMustNotAffectEpicInTaskManager() {
-        manager.addEpic(new Epic("ИМЯ", "ОПИСАНИЕ"));
-        manager.getTaskById(1);
-
-        Epic externalEpic = (Epic) manager.getHistory().getFirst();
-        externalEpic.setStatus(Status.DONE);
-        List<Integer> subTaskIds = new ArrayList<>();
-        subTaskIds.add(2);
-        subTaskIds.add(3);
-        subTaskIds.add(999);
-        externalEpic.setSubTaskIdList(subTaskIds);
-
-        Epic inManagerEpic = (Epic) manager.getTaskById(1).orElseThrow();
-
-        assertEquals(externalEpic, inManagerEpic, "Эпики должны совпадать по хэшу.");
-        assertEquals(externalEpic.getId(), inManagerEpic.getId(),
-                "id эпика должно совпадать.");
-        assertEquals(externalEpic.getName(), inManagerEpic.getName(),
-                "Имя эпика должно совпадать.");
-        assertEquals(externalEpic.getDescription(), inManagerEpic.getDescription(),
-                "Описание эпика должно совпадать.");
-
-        assertEquals(Status.DONE, externalEpic.getStatus(),
-                "Статус эпика вне менеджера должен измениться на DONE.");
-        assertEquals(Status.NEW, inManagerEpic.getStatus(),
-                "Статус эпика в менеджере должен быть NEW.");
-
-        assertFalse(externalEpic.getSubTaskIdList().isEmpty(),
-                "В список subTaskIds эпика вне менеджера должны быть добавлены id.");
-        assertTrue(inManagerEpic.getSubTaskIdList().isEmpty(),
-                "Список subTaskIds эпика в менеджере должен быть пустым.");
     }
 
     //ТЕСТЫ остальных методов.
@@ -949,18 +829,18 @@ class InMemoryTaskManagerTest {
                 "совпадать с размером списка менеджера.");
 
         for (int i = 0; i < tasksToCheck.size(); i++) {
-            Task managerListTask = initialTasks.get(i);
+            Task initialListTask = initialTasks.get(i);
             Task checkListTask = tasksToCheck.get(i);
 
-            assertEquals(managerListTask.getClass(), checkListTask.getClass(),
+            assertEquals(initialListTask.getClass(), checkListTask.getClass(),
                     "Классы задач не совпадают на позиции " + i);
-            assertEquals(managerListTask.getId(), checkListTask.getId(),
+            assertEquals(initialListTask.getId(), checkListTask.getId(),
                     "ID задач не совпадает на позиции " + i);
-            assertEquals(managerListTask.getName(), checkListTask.getName(),
+            assertEquals(initialListTask.getName(), checkListTask.getName(),
                     "Имя задачи не совпадает на позиции " + i);
-            assertEquals(managerListTask.getDescription(), checkListTask.getDescription(),
+            assertEquals(initialListTask.getDescription(), checkListTask.getDescription(),
                     "Описание не совпадает на позиции " + i);
-            assertEquals(managerListTask.getStatus(), checkListTask.getStatus(),
+            assertEquals(initialListTask.getStatus(), checkListTask.getStatus(),
                     "Статус не совпадает на позиции " + i);
         }
     }
