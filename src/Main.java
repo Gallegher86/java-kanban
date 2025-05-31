@@ -2,9 +2,11 @@ import com.yandex.taskmanager.model.Task;
 import com.yandex.taskmanager.model.Epic;
 import com.yandex.taskmanager.model.SubTask;
 import com.yandex.taskmanager.model.Status;
+
 import com.yandex.taskmanager.service.TaskManager;
 import com.yandex.taskmanager.service.Managers;
 
+import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.List;
 import java.util.Optional;
@@ -32,6 +34,27 @@ public class Main {
         manager.addSubTask(testSubTask2);
         manager.addSubTask(testSubTask3);
         manager.addSubTask(testSubTask4);
+
+        for (int i = 1; i < 9; i++) {
+            manager.getTaskById(i);
+        }
+        System.out.println(getIds(manager.getHistory()));
+
+        for (int i = 8; i > 0; i--) {
+            manager.getTaskById(i);
+        }
+        System.out.println(getIds(manager.getHistory()));
+
+        manager.getTaskById(7);
+        manager.getTaskById(6);
+        manager.getTaskById(5);
+        System.out.println(getIds(manager.getHistory()));
+
+        manager.deleteTaskById(1);
+        System.out.println(getIds(manager.getHistory()));
+
+        manager.deleteTaskById(3);
+        System.out.println(getIds(manager.getHistory()));
 
         runMainMenu(manager, scanner);
     }
@@ -353,7 +376,7 @@ public class Main {
                         printTaskInfo(manager.getSubTasks());
                         manager.updateSubTask(makeSubTaskForUpdate(scanner));
                         System.out.println("Подзадача обновлена.");
-                    } catch(IllegalArgumentException ex) {
+                    } catch (IllegalArgumentException ex) {
                         System.out.println("Ошибка при обновлении подзадачи: " + ex.getMessage());
                         System.out.println("Попробуйте ввести данные ещё раз.");
                     }
@@ -392,7 +415,7 @@ public class Main {
         System.out.print("Введите описание подзадачи: ");
         String description = scanner.nextLine().trim();
         System.out.print("Введите идентификатор эпика к которому относится подзадача: ");
-        Integer epicId = scanner.nextInt();
+        int epicId = scanner.nextInt();
         scanner.nextLine();
         return new SubTask(name, description, epicId);
     }
@@ -432,7 +455,7 @@ public class Main {
         String description = scanner.nextLine().trim();
         Status status = setStatus(scanner);
         System.out.print("Введите идентификатор эпика к которому относится подзадача: ");
-        Integer epicId = scanner.nextInt();
+        int epicId = scanner.nextInt();
         scanner.nextLine();
 
         return new SubTask(id, name, description, status, epicId);
@@ -457,7 +480,7 @@ public class Main {
         return status;
     }
 
-    private static void printTaskInfo (List<? extends Task> taskList) {
+    private static void printTaskInfo(List<? extends Task> taskList) {
         System.out.println("Список сохраненных задач:");
         System.out.println("-".repeat(100));
         for (Task task : taskList) {
@@ -476,6 +499,14 @@ public class Main {
                 System.out.println("-".repeat(100));
             }
         }
+    }
+
+    private static List<Integer> getIds(List<? extends Task> taskList) {
+        List<Integer> idList = new ArrayList<>();
+        for (Task task : taskList) {
+            idList.add(task.getId());
+        }
+        return idList;
     }
 }
 

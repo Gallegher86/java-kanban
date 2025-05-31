@@ -26,6 +26,13 @@ public class Task {
         this.status = status;
     }
 
+    public Task(Task other) {
+        this.id = other.id;
+        this.name = other.name;
+        this.description = other.description;
+        this.status = other.status;
+    }
+
     public String getName() {
         return name;
     }
@@ -34,24 +41,12 @@ public class Task {
         return description;
     }
 
-    public void setId(int id) {
-        if (id > 0) {
-            this.id = id;
-        } else {
-            throw new IllegalArgumentException("Попытка установить ID равным 0 или отрицательным: " + id);
-        }
-    }
-
     public int getId() {
         return id;
     }
 
     public Status getStatus() {
         return status;
-    }
-
-    public void setStatus(Status status) {
-        this.status = status;
     }
 
     @Override

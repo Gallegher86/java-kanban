@@ -1,12 +1,13 @@
 package com.yandex.taskmanager.service;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class ManagersTest {
 
     @Test
-    public void managerCreatesDefaultTaskManagerNotNull () {
+    public void managerCreatesDefaultTaskManagerNotNull() {
         TaskManager taskManager = Managers.getDefaultTaskManager();
 
         assertNotNull(taskManager,
@@ -14,7 +15,7 @@ class ManagersTest {
     }
 
     @Test
-    public void managerCreatesDefaultHistoryManagerNotNull () {
+    public void managerCreatesDefaultHistoryManagerNotNull() {
         HistoryManager historyManager = Managers.getDefaultHistoryManager();
 
         assertNotNull(historyManager,

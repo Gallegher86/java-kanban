@@ -14,25 +14,14 @@ public class Epic extends Task {
         super(id, name, description);
     }
 
-    public void addSubTaskId(int id) {
-        if (id != this.id && id > 0) {
-            subTaskIds.add(id);
-        } else {
-            throw new IllegalArgumentException("Переданный subTaskId, равен ID эпика, 0 или отрицателен: " + id);
-        }
+    public Epic(Epic other, List<Integer> subTaskIds) {
+        super(other.id, other.name, other.description, other.status);
+        this.subTaskIds = new ArrayList<>(subTaskIds);
     }
 
-    public void removeSubTaskId(int id) {
-        subTaskIds.remove((Integer) id);
-    }
-
-    public void setSubTaskIdList(List<Integer> newList) {
-        for (Integer checkId : newList) {
-            if (checkId == this.id || checkId <= 0) {
-                throw new IllegalArgumentException("В переданном subTaskIds, есть ID эпика или 0, или отрицательный ID: " + checkId);
-            }
-        }
-        subTaskIds = new ArrayList<>(newList);
+    public Epic(Epic other, Status status) {
+        super(other.id, other.name, other.description, status);
+        this.subTaskIds = new ArrayList<>(other.subTaskIds);
     }
 
     public List<Integer> getSubTaskIdList() {
