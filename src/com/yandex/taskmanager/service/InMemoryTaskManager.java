@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.Collections;
 
 public class InMemoryTaskManager implements TaskManager {
     private int idCounter = 0;
@@ -60,22 +61,29 @@ public class InMemoryTaskManager implements TaskManager {
         allTasks.addAll(tasks.values());
         allTasks.addAll(epics.values());
         allTasks.addAll(subTasks.values());
+        Collections.sort(allTasks);
         return allTasks;
     }
 
     @Override
     public List<Task> getTasks() {
-        return new ArrayList<>(tasks.values());
+        List<Task> tasksToReturn = new ArrayList<>(tasks.values());
+        Collections.sort(tasksToReturn);
+        return tasksToReturn;
     }
 
     @Override
     public List<Epic> getEpics() {
-        return new ArrayList<>(epics.values());
+        List<Epic> epicsToReturn = new ArrayList<>(epics.values());
+        Collections.sort(epicsToReturn);
+        return epicsToReturn;
     }
 
     @Override
     public List<SubTask> getSubTasks() {
-        return new ArrayList<>(subTasks.values());
+        List<SubTask> subTasksToReturn = new ArrayList<>(subTasks.values());
+        Collections.sort(subTasksToReturn);
+        return subTasksToReturn;
     }
 
     @Override
@@ -230,7 +238,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     private void checkTaskNotNull(Task task) {
         if (task == null) {
-            throw new NullPointerException("The Task provided to Task Manager is null.");
+            throw new NullPointerException("Task provided to Task Manager is null.");
         }
     }
 

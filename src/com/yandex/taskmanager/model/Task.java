@@ -2,7 +2,7 @@ package com.yandex.taskmanager.model;
 
 import java.util.Objects;
 
-public class Task {
+public class Task implements Comparable<Task> {
     protected int id;
     protected String name;
     protected String description;
@@ -50,6 +50,11 @@ public class Task {
     }
 
     @Override
+    public int compareTo(Task other) {
+        return Integer.compare(this.id, other.id);
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         Task task = (Task) o;
@@ -63,11 +68,6 @@ public class Task {
 
     @Override
     public String toString() {
-        return "Task{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", status=" + status +
-                '}';
+        return String.format("%s,%s,%s,%s,%s", id, TaskType.TASK, name, status, description);
     }
 }
