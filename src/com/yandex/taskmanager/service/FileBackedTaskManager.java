@@ -1,11 +1,9 @@
 package com.yandex.taskmanager.service;
 
-import com.yandex.taskmanager.model.Task;
-import com.yandex.taskmanager.model.Epic;
-import com.yandex.taskmanager.model.SubTask;
-import com.yandex.taskmanager.model.Status;
+import com.yandex.taskmanager.model.*;
 
 import java.util.List;
+import java.util.Optional;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -111,6 +109,25 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
         } catch (IOException ex) {
             System.out.println("I/O error while accessing Task Manager save file at path: " + saveFilePath);
         }
+    }
+
+    private Task fromString(String value) {
+        String[] taskFields = value.split(",");
+
+        int id = Integer.parseInt(taskFields[0]);
+        TaskType type = TaskType.valueOf(taskFields[1]);
+        String name = taskFields[2];
+        String description = taskFields[3];
+        Status status = Status.valueOf(taskFields[4]);
+
+        return switch (type) {
+            case TASK -> new Task(id, name, description, status);
+            case EPIC -> new Epic(id, name, description);
+            case SUBTASK -> {
+                int epicId = Integer.parseInt(taskFields[5]);
+                yield new SubTask(id, name, description, status, epicId);
+            }
+        };
     }
 
     public static void main(String[] args) {
