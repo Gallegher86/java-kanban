@@ -8,11 +8,13 @@ import com.yandex.taskmanager.model.TaskType;
 
 import com.yandex.taskmanager.exceptions.ManagerSaveException;
 
+import java.io.IOException;
+import java.io.FileNotFoundException;
+
+import java.util.ArrayList;
 import java.util.List;
 
 import java.io.FileWriter;
-import java.io.IOException;
-import java.io.FileNotFoundException;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -43,6 +45,13 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
             }
         } catch (IOException ex) {
             throw new IOException(("I/O error while initialising Task Manager save-file at path: "
+                    + saveFilePath), ex);
+        }
+
+        try {
+            restoreTasks(loadTasks(this.saveFilePath));
+        } catch (IOException ex) {
+            throw new IOException(("I/O error while reading from Task Manager save-file at path: "
                     + saveFilePath), ex);
         }
     }
@@ -116,14 +125,60 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
         }
     }
 
+    private void restoreTasks(List<Task> tasks) {
+        for (Task task : tasks) {
+            if (task instanceof Epic epic) {
+                insertEpic(epic);
+            } else if (task instanceof SubTask subTask) {
+                insertSubTask(subTask);
+            } else {
+                insertTask(task);
+            }
+        }
+    }
+
+    private List<Task> loadTasks(Path saveFilePath) throws IOException {
+        List<String> tasksString;
+        List<Task> tasks = new ArrayList<>();
+
+        try {
+            tasksString = readTasks(saveFilePath);
+        } catch (IOException ex) {
+            throw new IOException(("I/O error while accessing Task Manager save file at path: " + saveFilePath), ex);
+        }
+
+        if (!tasksString.isEmpty()) {
+            for (String value : tasksString) {
+                tasks.add(fromString(value));
+            }
+        }
+        return tasks;
+    }
+
+    private List<String> readTasks(Path saveFilePath) throws IOException {
+        List<String> tasksString = new ArrayList<>();
+
+        try {
+            String dataStream = Files.readString(saveFilePath);
+            String[] lines = dataStream.split("\\R");
+
+            for (int i = 1; i < lines.length; i++) {
+                tasksString.add(lines[i]);
+            }
+        } catch (IOException ex) {
+            throw new IOException(("I/O error while accessing Task Manager save file at path: " + saveFilePath), ex);
+        }
+        return tasksString;
+    }
+
     private Task fromString(String value) {
         String[] taskFields = value.split(",");
 
         int id = Integer.parseInt(taskFields[0]);
         TaskType type = TaskType.valueOf(taskFields[1]);
         String name = taskFields[2];
-        String description = taskFields[3];
-        Status status = Status.valueOf(taskFields[4]);
+        Status status = Status.valueOf(taskFields[3]);
+        String description = taskFields[4];
 
         return switch (type) {
             case TASK -> new Task(id, name, description, status);
@@ -136,9 +191,15 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
     }
 
     public static void main(String[] args) {
+        /*try {
+            FileBackedTaskManager manager = new FileBackedTaskManager(Paths.get("FileBackedManager.txt"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }*/
+
         TaskManager manager = Managers.getFileBackedTaskManager(Paths.get("FileBackedManager.txt"));
 
-        Task testTask1 = new Task("Task1", "Description task1");
+        /*Task testTask1 = new Task("Task1", "Description task1");
         Task testTask2 = new Task("Task2", "Description task2");
         Epic testEpic1 = new Epic("Epic1", "Description epic1");
         Epic testEpic2 = new Epic("Epic2", "Description epic2");
@@ -155,7 +216,16 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
         manager.addSubTask(testSubTask1);
         manager.addSubTask(testSubTask2);
         manager.addSubTask(testSubTask3);
-        manager.addSubTask(testSubTask4);
+        manager.addSubTask(testSubTask4);*/
+
+        System.out.println(manager.getTasks());
+        System.out.println(manager.getEpics());
+        System.out.println(manager.getSubTasks());
+        System.out.println(manager.getIdCounter());
+
+        manager.deleteTaskById(3);
+        System.out.println(manager.getAllTasks());
+        System.out.println(manager.getIdCounter());
     }
 }
 

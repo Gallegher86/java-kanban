@@ -204,6 +204,28 @@ public class InMemoryTaskManager implements TaskManager {
         }
     }
 
+    protected void insertTask(Task task) {
+        checkTaskNotNull(task);
+        tasks.put(task.getId(), task);
+        idCounter++;
+    }
+
+    protected void insertEpic(Epic epic) {
+        checkTaskNotNull(epic);
+        epics.put(epic.getId(), epic);
+        idCounter++;
+    }
+
+    protected void insertSubTask(SubTask subTask) {
+        Epic epic = epics.get(subTask.getEpicId());
+
+        checkTaskNotNull(subTask);
+        subTasks.put(subTask.getId(), subTask);
+        addSubTaskIdToEpic(epic, subTask.getId());
+        updateEpicStatus(epic.getId());
+        idCounter++;
+    }
+
     private boolean isTaskOkToAdd(Task task) {
         checkTaskNotNull(task);
 
