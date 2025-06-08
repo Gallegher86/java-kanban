@@ -14,6 +14,7 @@ import java.io.FileNotFoundException;
 import java.util.List;
 import java.util.ArrayList;
 
+import java.io.File;
 import java.io.FileWriter;
 
 import java.nio.file.Files;
@@ -23,34 +24,34 @@ import java.nio.charset.StandardCharsets;
 
 
 public class FileBackedTaskManager extends InMemoryTaskManager implements TaskManager {
-    private final Path saveFilePath;
+    private final Path saveFile;
 
-    public FileBackedTaskManager(Path saveFilePath) throws IOException {
-        if (saveFilePath == null) {
+    public FileBackedTaskManager(Path saveFile) throws IOException {
+        if (saveFile == null) {
             throw new IllegalArgumentException("Path provided to Task Manager is null.");
         }
 
-        if (Files.exists(saveFilePath) && Files.isDirectory(saveFilePath)) {
-            throw new IOException("Save file path points to a directory, not a file: " + saveFilePath);
+        if (Files.exists(saveFile) && Files.isDirectory(saveFile)) {
+            throw new IOException("Save file path points to a directory, not a file: " + saveFile);
         }
 
-        if (!Files.exists(saveFilePath)) {
+        if (!Files.exists(saveFile)) {
             try {
-                createSaveFile(saveFilePath);
+                createSaveFile(saveFile);
             } catch (IOException ex) {
                 throw new IOException(("I/O error while creating Task Manager save file at path: "
-                        + saveFilePath), ex);
+                        + saveFile), ex);
             }
         }
 
         try {
-            restoreTasks(loadTasks(saveFilePath));
+            restoreTasks(loadFromFile(saveFile.toFile()));
         } catch (IOException ex) {
             throw new IOException(("I/O error while reading from Task Manager save file at path: "
-                    + saveFilePath), ex);
+                    + saveFile), ex);
         }
 
-        this.saveFilePath = saveFilePath;
+        this.saveFile = saveFile;
     }
 
     @Override
@@ -104,7 +105,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
     private void save() {
         List<Task> managerMemory = getAllTasks();
 
-        try (FileWriter fileWriter = new FileWriter(saveFilePath.toFile(), StandardCharsets.UTF_8)) {
+        try (FileWriter fileWriter = new FileWriter(saveFile.toFile(), StandardCharsets.UTF_8)) {
             String header = "id,type,name,status,description,epic";
 
             fileWriter.write(header);
@@ -115,10 +116,10 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
                 fileWriter.write(System.lineSeparator());
             }
         } catch (FileNotFoundException ex) {
-            throw new ManagerSaveException(("TaskManager save file not found at path: " + saveFilePath), ex);
+            throw new ManagerSaveException(("TaskManager save file not found at path: " + saveFile), ex);
         } catch (IOException ex) {
             throw new ManagerSaveException(("I/O error while accessing Task Manager save file at path: "
-                    + saveFilePath), ex);
+                    + saveFile), ex);
         }
     }
 
@@ -134,14 +135,15 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
         }
     }
 
-    private List<Task> loadTasks(Path saveFilePath) throws IOException {
+    private static List<Task> loadFromFile(File file) throws IOException {
+        Path path = file.toPath();
         List<String> tasksString;
         List<Task> tasks = new ArrayList<>();
 
         try {
-            tasksString = readTasks(saveFilePath);
+            tasksString = readFromFile(path);
         } catch (IOException ex) {
-            throw new IOException(("I/O error while accessing Task Manager save file at path: " + saveFilePath), ex);
+            throw new IOException(("I/O error while accessing Task Manager save file at path: " + file), ex);
         }
 
         for (String value : tasksString) {
@@ -150,14 +152,14 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
         return tasks;
     }
 
-    private List<String> readTasks(Path saveFilePath) throws IOException {
+    private static List<String> readFromFile(Path file) throws IOException {
         List<String> tasksString = new ArrayList<>();
         String dataStream;
 
         try {
-            dataStream = Files.readString(saveFilePath);
+            dataStream = Files.readString(file);
         } catch (IOException ex) {
-            throw new IOException(("I/O error while accessing Task Manager save file at path: " + saveFilePath), ex);
+            throw new IOException(("I/O error while accessing Task Manager save file at path: " + file), ex);
         }
 
         if (dataStream.isBlank()) {
@@ -172,7 +174,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
         return tasksString;
     }
 
-    private Task fromString(String value) {
+    private static Task fromString(String value) {
         String[] taskFields = value.split(",");
 
         int id = Integer.parseInt(taskFields[0]);
@@ -191,28 +193,28 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
         };
     }
 
-    private void createSaveFile(Path saveFilePath) throws IOException {
-        Path parent = saveFilePath.getParent();
+    private static void createSaveFile(Path file) throws IOException {
+        Path parent = file.getParent();
 
         if (parent != null && !Files.exists(parent)) {
             try {
                 Files.createDirectories(parent);
             } catch (IOException ex) {
                 throw new IOException(("I/O error while creating directory for Task Manager save file at path: "
-                        + saveFilePath), ex);
+                        + file), ex);
             }
         }
 
         try {
-            Files.createFile(saveFilePath);
+            Files.createFile(file);
         } catch (IOException ex) {
             throw new IOException(("I/O error while creating Task Manager save file at path: "
-                    + saveFilePath), ex);
+                    + file), ex);
         }
     }
 
     public static void main(String[] args) {
-        Path path = Paths.get("FileBackedManager.txt");
+        Path path = Paths.get("FileBackedTaskManager.txt");
 
         TaskManager manager = Managers.getFileBackedTaskManager(path);
 
@@ -240,6 +242,12 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
         TaskManager newManager = Managers.getFileBackedTaskManager(path);
 
         System.out.println(newManager.getAllTasks());
+
+        try {
+            Files.deleteIfExists(path);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
 
