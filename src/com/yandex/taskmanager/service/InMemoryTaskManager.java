@@ -11,10 +11,10 @@ import java.util.HashMap;
 import java.util.Optional;
 
 public class InMemoryTaskManager implements TaskManager {
-    private int idCounter = 0;
-    private final HashMap<Integer, Task> tasks = new HashMap<>();
-    private final HashMap<Integer, Epic> epics = new HashMap<>();
-    private final HashMap<Integer, SubTask> subTasks = new HashMap<>();
+    protected int idCounter = 0;
+    protected final HashMap<Integer, Task> tasks = new HashMap<>();
+    protected final HashMap<Integer, Epic> epics = new HashMap<>();
+    protected final HashMap<Integer, SubTask> subTasks = new HashMap<>();
     private final HistoryManager historyManager = Managers.getDefaultHistoryManager();
 
     @Override
@@ -202,28 +202,6 @@ public class InMemoryTaskManager implements TaskManager {
         }
     }
 
-    protected void insertTask(Task task) {
-        checkTaskNotNull(task);
-        tasks.put(task.getId(), task);
-        idCounter++;
-    }
-
-    protected void insertEpic(Epic epic) {
-        checkTaskNotNull(epic);
-        epics.put(epic.getId(), epic);
-        idCounter++;
-    }
-
-    protected void insertSubTask(SubTask subTask) {
-        Epic epic = epics.get(subTask.getEpicId());
-
-        checkTaskNotNull(subTask);
-        subTasks.put(subTask.getId(), subTask);
-        addSubTaskIdToEpic(epic, subTask.getId());
-        updateEpicStatus(epic.getId());
-        idCounter++;
-    }
-
     private boolean isTaskOkToAdd(Task task) {
         checkTaskNotNull(task);
 
@@ -301,7 +279,7 @@ public class InMemoryTaskManager implements TaskManager {
         subTasks.remove(id);
     }
 
-    private void updateEpicStatus(int id) {
+    protected void updateEpicStatus(int id) {
         Epic epic = epics.get(id);
         List<Integer> subTaskIds = epic.getSubTaskIdList();
 
@@ -333,7 +311,7 @@ public class InMemoryTaskManager implements TaskManager {
         }
     }
 
-    private void addSubTaskIdToEpic(Epic epic, int subTaskId) {
+    protected void addSubTaskIdToEpic(Epic epic, int subTaskId) {
         List<Integer> subTaskIds = new ArrayList<>(epic.getSubTaskIdList());
 
         subTaskIds.add(subTaskId);

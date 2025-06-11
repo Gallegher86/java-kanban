@@ -68,18 +68,14 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
     }
 
     @Test
-    public void constructorMustCreateNewFileIfItsNotExistsOnProvidedPath() {
-        try {
-            Path pathWithNoFile = Files.createTempFile("NoFile_", ".csv");
-            Files.deleteIfExists(pathWithNoFile);
+    public void constructorMustCreateNewFileIfItsNotExistsOnProvidedPath() throws IOException {
+        Path pathWithNoFile = Files.createTempFile("NoFile_", ".csv");
+        Files.deleteIfExists(pathWithNoFile);
 
-            manager = new FileBackedTaskManager(pathWithNoFile);
-            assertTrue(Files.exists(pathWithNoFile), "Менеджер должен создать файл сохранения.");
+        manager = new FileBackedTaskManager(pathWithNoFile);
+        assertTrue(Files.exists(pathWithNoFile), "Менеджер должен создать файл сохранения.");
 
-            Files.deleteIfExists(pathWithNoFile);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        Files.deleteIfExists(pathWithNoFile);
     }
 
     @Test
@@ -99,7 +95,7 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
             assertTrue(savedTask.isEmpty(), "Задача должна быть удалена из файла сохранений.");
             assertTrue(inMemoryTask.isEmpty(), "Задача должна быть удалена из памяти менеджера.");
 
-            FileBackedTaskManager newManager = new FileBackedTaskManager(tempFilePath);
+            FileBackedTaskManager newManager = FileBackedTaskManager.loadFromFile(tempFilePath.toFile());
             savedTask = loadFromFile(tempFilePath);
             inMemoryTask = newManager.getAllTasks();
 
@@ -111,7 +107,7 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
     }
 
     @Test
-    public void loadFromListWithDataWorksProperly() {
+    public void loadFromFileWithDataWorksProperly() {
         try {
             createSixTaskListForTests(manager);
 
@@ -120,7 +116,7 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
             checkTaskCountForSixTasks(manager);
             checkTasksUnchangedCustom(savedTask, inMemoryTask);
 
-            FileBackedTaskManager newManager = new FileBackedTaskManager(tempFilePath);
+            FileBackedTaskManager newManager = FileBackedTaskManager.loadFromFile(tempFilePath.toFile());
             savedTask = loadFromFile(tempFilePath);
             inMemoryTask = newManager.getAllTasks();
             checkTaskCountForSixTasks(newManager);
@@ -128,6 +124,17 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Test
+    public void loadFromFileCountsIdCounterCorrectly() {
+        createSixTaskListForTests(manager);
+
+        manager.deleteTaskById(1);
+        manager.deleteTaskById(2);
+
+        FileBackedTaskManager newManager = FileBackedTaskManager.loadFromFile(tempFilePath.toFile());
+        checkTaskCountCustom(newManager, 0, 1, 1, 6);
     }
 
     @Test

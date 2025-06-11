@@ -1,5 +1,6 @@
 package com.yandex.taskmanager.service;
 
+import com.yandex.taskmanager.exceptions.ManagerLoadException;
 import com.yandex.taskmanager.model.Task;
 import com.yandex.taskmanager.model.Epic;
 import com.yandex.taskmanager.model.SubTask;
@@ -43,13 +44,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
                 throw new IOException(("I/O error while creating Task Manager save file at path: "
                         + saveFile), ex);
             }
-        }
-
-        try {
-            restoreTasks(loadFromFile(saveFile.toFile()));
-        } catch (IOException ex) {
-            throw new IOException(("I/O error while reading from Task Manager save file at path: "
-                    + saveFile), ex);
         }
 
         this.saveFile = saveFile;
@@ -122,33 +116,45 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
         }
     }
 
-    private void restoreTasks(List<Task> tasks) {
-        for (Task task : tasks) {
-            if (task instanceof Epic epic) {
-                insertEpic(epic);
-            } else if (task instanceof SubTask subTask) {
-                insertSubTask(subTask);
-            } else {
-                insertTask(task);
-            }
-        }
-    }
-
-    private static List<Task> loadFromFile(File file) throws IOException {
-        Path path = file.toPath();
+    public static FileBackedTaskManager loadFromFile(File file) {
+        final Path loadPath = file.toPath();
+        final FileBackedTaskManager taskManager;
         List<String> tasksString;
-        List<Task> tasks = new ArrayList<>();
+        int idCounter = 0;
 
         try {
-            tasksString = readFromFile(path);
+            taskManager = new FileBackedTaskManager(loadPath);
+            tasksString = readFromFile(loadPath);
         } catch (IOException ex) {
-            throw new IOException(("I/O error while accessing Task Manager save file at path: " + file), ex);
+            throw new ManagerLoadException(("I/O error while accessing Task Manager load file at path: "
+                    + loadPath), ex);
         }
 
         for (String value : tasksString) {
-            tasks.add(fromString(value));
+            Task task = fromString(value);
+            taskManager.restoreTasks(task);
+            if (task.getId() > idCounter) {
+                idCounter = task.getId();
+            }
         }
-        return tasks;
+
+        taskManager.idCounter = idCounter;
+
+        return taskManager;
+    }
+
+    private void restoreTasks(Task task) {
+        if (task instanceof Epic epic) {
+            epics.put(epic.getId(), epic);
+        } else if (task instanceof SubTask subTask) {
+            Epic epic = epics.get(subTask.getEpicId());
+
+            subTasks.put(subTask.getId(), subTask);
+            addSubTaskIdToEpic(epic, subTask.getId());
+            updateEpicStatus(epic.getId());
+        } else {
+            tasks.put(task.getId(), task);
+        }
     }
 
     private static List<String> readFromFile(Path file) throws IOException {
@@ -238,7 +244,10 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
 
         System.out.println(manager.getAllTasks());
 
-        TaskManager newManager = Managers.getFileBackedTaskManager(path);
+        manager.deleteTaskById(1);
+        manager.deleteTaskById(8);
+
+        TaskManager newManager = FileBackedTaskManager.loadFromFile(path.toFile());
 
         System.out.println(newManager.getAllTasks());
 
