@@ -26,7 +26,7 @@ import java.nio.charset.StandardCharsets;
 
 public class FileBackedTaskManager extends InMemoryTaskManager implements TaskManager {
     private final Path saveFile;
-    private final static String HEADER = "id,type,name,status,description,epic";
+    private static final String HEADER = "id,type,name,status,description,epic";
 
     public FileBackedTaskManager(Path saveFile) throws IOException {
         if (saveFile == null) {
