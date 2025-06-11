@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Optional;
-import java.util.Collections;
 
 public class InMemoryTaskManager implements TaskManager {
     private int idCounter = 0;
@@ -61,7 +60,6 @@ public class InMemoryTaskManager implements TaskManager {
         allTasks.addAll(tasks.values());
         allTasks.addAll(epics.values());
         allTasks.addAll(subTasks.values());
-        Collections.sort(allTasks);
         return allTasks;
     }
 
