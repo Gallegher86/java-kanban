@@ -25,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 
 public class FileBackedTaskManager extends InMemoryTaskManager implements TaskManager {
     private final Path saveFile;
+    private final static String HEADER = "id,type,name,status,description,epic";
 
     public FileBackedTaskManager(Path saveFile) throws IOException {
         if (saveFile == null) {
@@ -106,9 +107,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
         List<Task> managerMemory = getAllTasks();
 
         try (FileWriter fileWriter = new FileWriter(saveFile.toFile(), StandardCharsets.UTF_8)) {
-            String header = "id,type,name,status,description,epic";
-
-            fileWriter.write(header);
+            fileWriter.write(HEADER);
             fileWriter.write(System.lineSeparator());
 
             for (Task task : managerMemory) {
