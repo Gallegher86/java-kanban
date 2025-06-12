@@ -135,10 +135,9 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
         if (task instanceof Epic epic) {
             epics.put(epic.getId(), epic);
         } else if (task instanceof SubTask subTask) {
-            Epic epic = epics.get(subTask.getEpicId());
-
             subTasks.put(subTask.getId(), subTask);
-            addSubTaskIdToEpic(epic, subTask.getId());
+            Epic epic = epics.get(subTask.getEpicId());
+            epic.addSubTaskId(subTask.getId());
             updateEpicStatus(epic.getId());
         } else {
             tasks.put(task.getId(), task);

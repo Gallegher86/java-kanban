@@ -311,8 +311,8 @@ public class InMemoryTaskManager implements TaskManager {
         }
     }
 
-    protected void addSubTaskIdToEpic(Epic epic, int subTaskId) {
-        List<Integer> subTaskIds = new ArrayList<>(epic.getSubTaskIdList());
+    private void addSubTaskIdToEpic(Epic epic, int subTaskId) {
+        List<Integer> subTaskIds = epic.getSubTaskIdList();
 
         subTaskIds.add(subTaskId);
         Epic updatedEpic = new Epic(epic, subTaskIds);
@@ -320,7 +320,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     private void removeSubTaskIdFromEpic(Epic epic, int subTaskId) {
-        List<Integer> subTaskIds = new ArrayList<>(epic.getSubTaskIdList());
+        List<Integer> subTaskIds = epic.getSubTaskIdList();
 
         subTaskIds.remove(Integer.valueOf(subTaskId));
         Epic updatedEpic = new Epic(epic, subTaskIds);

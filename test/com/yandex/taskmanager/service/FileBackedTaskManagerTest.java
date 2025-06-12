@@ -33,7 +33,7 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
     }
 
     @AfterEach
-    void deleteTempFilePath() {
+    void deleteTempFile() {
         if (tempFile != null) {
             try {
                 Files.deleteIfExists(tempFile.toPath());
