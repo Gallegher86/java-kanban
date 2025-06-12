@@ -1,7 +1,8 @@
 package com.yandex.taskmanager.service;
 
+import java.io.File;
+
 import java.io.IOException;
-import java.nio.file.Path;
 
 public class Managers {
     private Managers() {
@@ -11,9 +12,9 @@ public class Managers {
         return new InMemoryTaskManager();
     }
 
-    public static TaskManager getFileBackedTaskManager(Path saveFilePath) {
+    public static TaskManager getFileBackedTaskManager(File saveFile) {
         try {
-            return new FileBackedTaskManager(saveFilePath);
+            return new FileBackedTaskManager(saveFile);
         } catch (IOException e) {
             throw new RuntimeException(e.getMessage());
         }

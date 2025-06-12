@@ -11,6 +11,8 @@ import com.yandex.taskmanager.model.TaskType;
 
 import java.io.IOException;
 
+import java.io.File;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -23,13 +25,15 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
     private Path tempFilePath;
+    private File tempFile;
 
     @Override
     protected FileBackedTaskManager createManager() {
         try {
-            tempFilePath = Files.createTempFile("tasks_", ".csv");
+            tempFile = File.createTempFile("tasks_", ".csv");
+            tempFilePath = tempFile.toPath();
             System.out.println(tempFilePath.toAbsolutePath());
-            return new FileBackedTaskManager(tempFilePath);
+            return new FileBackedTaskManager(tempFile);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -40,29 +44,25 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
         if (tempFilePath != null) {
             try {
                 Files.deleteIfExists(tempFilePath);
-                System.out.println("Удален: " + tempFilePath);
+                System.out.println("Удален: " + tempFilePath.toAbsolutePath());
             } catch (IOException e) {
-                System.err.println("Не удалось удалить временный файл: " + tempFilePath);
+                System.err.println("Не удалось удалить временный файл: " + tempFilePath.toAbsolutePath());
             }
         }
     }
 
     @Test
     public void constructorMustThrowExceptionIfPathIsNull() {
-        IllegalArgumentException ex1 = assertThrows(IllegalArgumentException.class, () ->
-                new FileBackedTaskManager(null));
-        assertTrue(ex1.getMessage().contains("null"),
-                "Сообщение об ошибке должно содержать слово 'null'.");
+        IllegalArgumentException ex1 = assertThrows(IllegalArgumentException.class, () -> new FileBackedTaskManager(null));
+        assertTrue(ex1.getMessage().contains("null"), "Сообщение об ошибке должно содержать слово 'null'.");
     }
 
     @Test
     public void constructorMustThrowExceptionIfPathIsDirectory() throws IOException {
         Path dir = Files.createTempDirectory("testDir");
 
-        IOException ex1 = assertThrows(IOException.class, () ->
-                new FileBackedTaskManager(dir));
-        assertTrue(ex1.getMessage().contains("directory"),
-                "Сообщение об ошибке должно содержать слово 'directory'.");
+        IOException ex1 = assertThrows(IOException.class, () -> new FileBackedTaskManager(dir.toFile()));
+        assertTrue(ex1.getMessage().contains("directory"), "Сообщение об ошибке должно содержать слово 'directory'.");
 
         Files.deleteIfExists(dir);
     }
@@ -72,7 +72,7 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
         Path pathWithNoFile = Files.createTempFile("NoFile_", ".csv");
         Files.deleteIfExists(pathWithNoFile);
 
-        manager = new FileBackedTaskManager(pathWithNoFile);
+        manager = new FileBackedTaskManager(pathWithNoFile.toFile());
         assertTrue(Files.exists(pathWithNoFile), "Менеджер должен создать файл сохранения.");
 
         Files.deleteIfExists(pathWithNoFile);
@@ -84,19 +84,19 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
             task1 = new Task("Task1", "Description task1");
 
             manager.addTask(task1);
-            List<Task> savedTask = loadFromFile(tempFilePath);
+            List<Task> savedTask = loadFromFile(tempFile);
             List<Task> inMemoryTask = manager.getAllTasks();
             checkTasksUnchangedCustom(savedTask, inMemoryTask);
 
             manager.deleteTaskById(1);
-            savedTask = loadFromFile(tempFilePath);
+            savedTask = loadFromFile(tempFile);
             inMemoryTask = manager.getAllTasks();
 
             assertTrue(savedTask.isEmpty(), "Задача должна быть удалена из файла сохранений.");
             assertTrue(inMemoryTask.isEmpty(), "Задача должна быть удалена из памяти менеджера.");
 
-            FileBackedTaskManager newManager = FileBackedTaskManager.loadFromFile(tempFilePath.toFile());
-            savedTask = loadFromFile(tempFilePath);
+            FileBackedTaskManager newManager = FileBackedTaskManager.loadFromFile(tempFile);
+            savedTask = loadFromFile(tempFile);
             inMemoryTask = newManager.getAllTasks();
 
             assertTrue(savedTask.isEmpty(), "В файле сохранений не должно быть задач.");
@@ -111,13 +111,13 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
         try {
             createSixTaskListForTests(manager);
 
-            List<Task> savedTask = loadFromFile(tempFilePath);
+            List<Task> savedTask = loadFromFile(tempFile);
             List<Task> inMemoryTask = manager.getAllTasks();
             checkTaskCountForSixTasks(manager);
             checkTasksUnchangedCustom(savedTask, inMemoryTask);
 
-            FileBackedTaskManager newManager = FileBackedTaskManager.loadFromFile(tempFilePath.toFile());
-            savedTask = loadFromFile(tempFilePath);
+            FileBackedTaskManager newManager = FileBackedTaskManager.loadFromFile(tempFile);
+            savedTask = loadFromFile(tempFile);
             inMemoryTask = newManager.getAllTasks();
             checkTaskCountForSixTasks(newManager);
             checkTasksUnchangedCustom(savedTask, inMemoryTask);
@@ -133,14 +133,14 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
         manager.deleteTaskById(1);
         manager.deleteTaskById(2);
 
-        FileBackedTaskManager newManager = FileBackedTaskManager.loadFromFile(tempFilePath.toFile());
+        FileBackedTaskManager newManager = FileBackedTaskManager.loadFromFile(tempFile);
         checkTaskCountCustom(newManager, 0, 1, 1, 6);
     }
 
     @Test
     public void saveWorksProperlyOnAddTasks() {
         try {
-            List<Task> savedTask = loadFromFile(tempFilePath);
+            List<Task> savedTask = loadFromFile(tempFile);
             List<Task> inMemoryTask = manager.getAllTasks();
 
             assertTrue(savedTask.isEmpty(), "Файл сохранения должен быть пустым.");
@@ -148,7 +148,7 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
             checkTaskCountForEmptyManager(manager);
 
             createSixTaskListForTests(manager);
-            savedTask = loadFromFile(tempFilePath);
+            savedTask = loadFromFile(tempFile);
             inMemoryTask = manager.getAllTasks();
             checkTaskCountForSixTasks(manager);
             checkTasksUnchangedCustom(savedTask, inMemoryTask);
@@ -163,7 +163,7 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
             createSixTaskListForTests(manager);
 
             manager.deleteAllTasks();
-            List<Task> savedTask = loadFromFile(tempFilePath);
+            List<Task> savedTask = loadFromFile(tempFile);
             List<Task> inMemoryTask = manager.getAllTasks();
             checkTaskCountForEmptyManager(manager);
             checkTasksUnchangedCustom(savedTask, inMemoryTask);
@@ -178,17 +178,17 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
             createSixTaskListForTests(manager);
 
             manager.deleteTaskById(task1.getId());
-            List<Task> savedTask = loadFromFile(tempFilePath);
+            List<Task> savedTask = loadFromFile(tempFile);
             List<Task> inMemoryTask = manager.getAllTasks();
             checkTasksUnchangedCustom(savedTask, inMemoryTask);
 
             manager.deleteTaskById(subTask3.getId());
-            savedTask = loadFromFile(tempFilePath);
+            savedTask = loadFromFile(tempFile);
             inMemoryTask = manager.getAllTasks();
             checkTasksUnchangedCustom(savedTask, inMemoryTask);
 
             manager.deleteTaskById(epic1.getId());
-            savedTask = loadFromFile(tempFilePath);
+            savedTask = loadFromFile(tempFile);
             inMemoryTask = manager.getAllTasks();
             checkTasksUnchangedCustom(savedTask, inMemoryTask);
         } catch (Exception e) {
@@ -203,19 +203,18 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
 
             Task task = new Task(task1.getId(), "TASK CHANGED", "DESCRIPTION CHANGED", Status.DONE);
             Epic epic = new Epic(epic1.getId(), "EPIC CHANGED", "DESCRIPTION CHANGED");
-            SubTask subTask = new SubTask(subTask1.getId(), "SUBTASK CHANGED", "DESCRIPTION CHANGED",
-                    Status.IN_PROGRESS, subTask1.getEpicId());
+            SubTask subTask = new SubTask(subTask1.getId(), "SUBTASK CHANGED", "DESCRIPTION CHANGED", Status.IN_PROGRESS, subTask1.getEpicId());
 
             manager.updateTask(task);
-            List<String> savedData = readFromFile(tempFilePath);
+            List<String> savedData = readFromFile(tempFile);
             checkTask(savedData.getFirst(), manager.getTaskById(task1.getId()).orElseThrow());
 
             manager.updateEpic(epic);
-            savedData = readFromFile(tempFilePath);
+            savedData = readFromFile(tempFile);
             checkTask(savedData.get(1), manager.getTaskById(epic1.getId()).orElseThrow());
 
             manager.updateSubTask(subTask);
-            savedData = readFromFile(tempFilePath);
+            savedData = readFromFile(tempFile);
             checkTask(savedData.get(2), manager.getTaskById(subTask1.getId()).orElseThrow());
             checkTask(savedData.get(1), manager.getTaskById(epic1.getId()).orElseThrow());
         } catch (Exception e) {
@@ -224,14 +223,14 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
     }
 
     //ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ.
-    private static List<Task> loadFromFile(Path path) throws IOException {
+    private static List<Task> loadFromFile(File file) throws IOException {
         List<String> tasksString;
         List<Task> tasks = new ArrayList<>();
 
         try {
-            tasksString = readFromFile(path);
+            tasksString = readFromFile(file);
         } catch (IOException ex) {
-            throw new IOException(("I/O error while accessing Task Manager save file at path: " + path), ex);
+            throw new IOException(("I/O error while accessing Task Manager save file at path: " + file.toPath()), ex);
         }
 
         for (String value : tasksString) {
@@ -240,21 +239,21 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
         return tasks;
     }
 
-    private static List<String> readFromFile(Path file) throws IOException {
+    private static List<String> readFromFile(File file) throws IOException {
         List<String> tasksString = new ArrayList<>();
         String dataStream;
 
         try {
-            dataStream = Files.readString(file);
+            dataStream = Files.readString(file.toPath());
         } catch (IOException ex) {
-            throw new IOException(("I/O error while accessing Task Manager save file at path: " + file), ex);
+            throw new IOException(("I/O error while accessing Task Manager save file at path: " + file.toPath()), ex);
         }
 
         if (dataStream.isBlank()) {
             return tasksString;
         }
 
-        String[] lines = dataStream.split("\\R");
+        String[] lines = dataStream.split(System.lineSeparator());
 
         for (int i = 1; i < lines.length; i++) {
             tasksString.add(lines[i]);

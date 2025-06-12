@@ -20,29 +20,31 @@ import java.io.FileWriter;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.charset.StandardCharsets;
 
-
 public class FileBackedTaskManager extends InMemoryTaskManager implements TaskManager {
-    private final Path saveFile;
+    private final File saveFile;
     private static final String HEADER = "id,type,name,status,description,epic";
 
-    public FileBackedTaskManager(Path saveFile) throws IOException {
+    public FileBackedTaskManager(File saveFile) throws IOException {
+        Path path;
+
         if (saveFile == null) {
             throw new IllegalArgumentException("Path provided to Task Manager is null.");
+        } else {
+            path = saveFile.toPath();
         }
 
-        if (Files.exists(saveFile) && Files.isDirectory(saveFile)) {
-            throw new IOException("Save file path points to a directory, not a file: " + saveFile);
+        if (Files.exists(path) && Files.isDirectory(path)) {
+            throw new IOException("Save file path points to a directory, not a file: " + path);
         }
 
-        if (!Files.exists(saveFile)) {
+        if (!Files.exists(path)) {
             try {
-                createSaveFile(saveFile);
+                createSaveFile(path);
             } catch (IOException ex) {
                 throw new IOException(("I/O error while creating Task Manager save file at path: "
-                        + saveFile), ex);
+                        + path), ex);
             }
         }
 
@@ -100,7 +102,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
     private void save() {
         List<Task> managerMemory = getAllTasks();
 
-        try (FileWriter fileWriter = new FileWriter(saveFile.toFile(), StandardCharsets.UTF_8)) {
+        try (FileWriter fileWriter = new FileWriter(saveFile, StandardCharsets.UTF_8)) {
             fileWriter.write(HEADER);
             fileWriter.write(System.lineSeparator());
 
@@ -109,25 +111,24 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
                 fileWriter.write(System.lineSeparator());
             }
         } catch (FileNotFoundException ex) {
-            throw new ManagerSaveException(("TaskManager save file not found at path: " + saveFile), ex);
+            throw new ManagerSaveException(("TaskManager save file not found at path: " + saveFile.toPath()), ex);
         } catch (IOException ex) {
             throw new ManagerSaveException(("I/O error while accessing Task Manager save file at path: "
-                    + saveFile), ex);
+                    + saveFile.toPath()), ex);
         }
     }
 
     public static FileBackedTaskManager loadFromFile(File file) {
-        final Path loadPath = file.toPath();
         final FileBackedTaskManager taskManager;
         List<String> tasksString;
         int idCounter = 0;
 
         try {
-            taskManager = new FileBackedTaskManager(loadPath);
-            tasksString = readFromFile(loadPath);
+            taskManager = new FileBackedTaskManager(file);
+            tasksString = readFromFile(file);
         } catch (IOException ex) {
             throw new ManagerLoadException(("I/O error while accessing Task Manager load file at path: "
-                    + loadPath), ex);
+                    + file.toPath()), ex);
         }
 
         for (String value : tasksString) {
@@ -157,14 +158,14 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
         }
     }
 
-    private static List<String> readFromFile(Path file) throws IOException {
+    private static List<String> readFromFile(File file) throws IOException {
         List<String> tasksString = new ArrayList<>();
         String dataStream;
 
         try {
-            dataStream = Files.readString(file);
+            dataStream = Files.readString(file.toPath());
         } catch (IOException ex) {
-            throw new IOException(("I/O error while accessing Task Manager save file at path: " + file), ex);
+            throw new IOException(("I/O error while accessing Task Manager save file at path: " + file.toPath()), ex);
         }
 
         if (dataStream.isBlank()) {
@@ -198,30 +199,30 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
         };
     }
 
-    private static void createSaveFile(Path file) throws IOException {
-        Path parent = file.getParent();
+    private static void createSaveFile(Path path) throws IOException {
+        Path parent = path.getParent();
 
         if (parent != null && !Files.exists(parent)) {
             try {
                 Files.createDirectories(parent);
             } catch (IOException ex) {
                 throw new IOException(("I/O error while creating directory for Task Manager save file at path: "
-                        + file), ex);
+                        + path), ex);
             }
         }
 
         try {
-            Files.createFile(file);
+            Files.createFile(path);
         } catch (IOException ex) {
             throw new IOException(("I/O error while creating Task Manager save file at path: "
-                    + file), ex);
+                    + path), ex);
         }
     }
 
     public static void main(String[] args) {
-        Path path = Paths.get("FileBackedTaskManager.txt");
+        File file = new File("FileBackedTaskManager.txt");
 
-        TaskManager manager = Managers.getFileBackedTaskManager(path);
+        TaskManager manager = Managers.getFileBackedTaskManager(file);
 
         Task testTask1 = new Task("Task1", "Description task1");
         Task testTask2 = new Task("Task2", "Description task2");
@@ -247,12 +248,12 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
         manager.deleteTaskById(1);
         manager.deleteTaskById(8);
 
-        TaskManager newManager = FileBackedTaskManager.loadFromFile(path.toFile());
+        TaskManager newManager = FileBackedTaskManager.loadFromFile(file);
 
         System.out.println(newManager.getAllTasks());
 
         try {
-            Files.deleteIfExists(path);
+            Files.deleteIfExists(file.toPath());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
