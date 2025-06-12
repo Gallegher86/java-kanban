@@ -24,15 +24,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
-    private Path tempFilePath;
     private File tempFile;
 
     @Override
     protected FileBackedTaskManager createManager() {
         try {
             tempFile = File.createTempFile("tasks_", ".csv");
-            tempFilePath = tempFile.toPath();
-            System.out.println(tempFilePath.toAbsolutePath());
+            System.out.println(tempFile.getAbsolutePath());
             return new FileBackedTaskManager(tempFile);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -41,12 +39,12 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
 
     @AfterEach
     void deleteTempFilePath() {
-        if (tempFilePath != null) {
+        if (tempFile != null) {
             try {
-                Files.deleteIfExists(tempFilePath);
-                System.out.println("Удален: " + tempFilePath.toAbsolutePath());
+                Files.deleteIfExists(tempFile.toPath());
+                System.out.println("Удален: " + tempFile.getAbsolutePath());
             } catch (IOException e) {
-                System.err.println("Не удалось удалить временный файл: " + tempFilePath.toAbsolutePath());
+                System.err.println("Не удалось удалить временный файл: " + tempFile.getAbsolutePath());
             }
         }
     }
