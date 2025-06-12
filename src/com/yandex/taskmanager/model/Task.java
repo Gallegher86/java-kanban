@@ -2,7 +2,7 @@ package com.yandex.taskmanager.model;
 
 import java.util.Objects;
 
-public class Task implements Comparable<Task> {
+public class Task {
     protected int id;
     protected String name;
     protected String description;
@@ -47,11 +47,6 @@ public class Task implements Comparable<Task> {
 
     public Status getStatus() {
         return status;
-    }
-
-    @Override
-    public int compareTo(Task other) {
-        return Integer.compare(this.id, other.id);
     }
 
     @Override
