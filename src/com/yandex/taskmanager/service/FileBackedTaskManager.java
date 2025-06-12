@@ -19,7 +19,6 @@ import java.io.File;
 import java.io.FileWriter;
 
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.charset.StandardCharsets;
 
 public class FileBackedTaskManager extends InMemoryTaskManager implements TaskManager {
@@ -27,28 +26,16 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
     private static final String HEADER = "id,type,name,status,description,epic";
 
     public FileBackedTaskManager(File saveFile) throws IOException {
-        Path path;
-
         if (saveFile == null) {
-            throw new IllegalArgumentException("Path provided to Task Manager is null.");
+            throw new IllegalArgumentException("File provided to Task Manager is null.");
+        }
+
+        if (saveFile.exists()) {
+            this.saveFile = saveFile;
         } else {
-            path = saveFile.toPath();
+            throw new IOException("File provided to Task Manager does not exist: "
+                    + saveFile);
         }
-
-        if (Files.exists(path) && Files.isDirectory(path)) {
-            throw new IOException("Save file path points to a directory, not a file: " + path);
-        }
-
-        if (!Files.exists(path)) {
-            try {
-                createSaveFile(path);
-            } catch (IOException ex) {
-                throw new IOException(("I/O error while creating Task Manager save file at path: "
-                        + path), ex);
-            }
-        }
-
-        this.saveFile = saveFile;
     }
 
     @Override
@@ -199,28 +186,14 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
         };
     }
 
-    private static void createSaveFile(Path path) throws IOException {
-        Path parent = path.getParent();
-
-        if (parent != null && !Files.exists(parent)) {
-            try {
-                Files.createDirectories(parent);
-            } catch (IOException ex) {
-                throw new IOException(("I/O error while creating directory for Task Manager save file at path: "
-                        + path), ex);
-            }
-        }
+    public static void main(String[] args) {
+        File file;
 
         try {
-            Files.createFile(path);
-        } catch (IOException ex) {
-            throw new IOException(("I/O error while creating Task Manager save file at path: "
-                    + path), ex);
+            file = File.createTempFile("FileBackedTaskManager_", ".txt");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-    }
-
-    public static void main(String[] args) {
-        File file = new File("FileBackedTaskManager.txt");
 
         TaskManager manager = Managers.getFileBackedTaskManager(file);
 
