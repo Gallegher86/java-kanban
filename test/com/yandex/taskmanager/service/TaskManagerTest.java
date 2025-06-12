@@ -329,7 +329,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
     //ТЕСТЫ updateTask.
     @Test
-    public void updateTaskWorksProperly() {
+    public void updateTaskWorksCorrectly() {
         createSixTaskListForTests(manager);
 
         Task updateTask = new Task(task1.getId(), "ЗАДАЧА ОБНОВЛЕНА", "ЗАДАЧА ВЫПОЛНЕНА", Status.DONE);
@@ -604,7 +604,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
     //ТЕСТЫ resetEpicStatus.
     @Test
-    public void updateEpicStatusWorksProperly() {
+    public void updateEpicStatusWorksCorrectly() {
         Epic epic1 = new Epic("ЭПИК", "описание");
         manager.addEpic(epic1);
 
@@ -665,7 +665,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
     //ТЕСТЫ остальных методов.
     @Test
-    public void getTasksWorksProperly() {
+    public void getTasksWorksCorrectly() {
         createSixTaskListForTests(manager);
 
         List<Task> allTasks = new ArrayList<>();

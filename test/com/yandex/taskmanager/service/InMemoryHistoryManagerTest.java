@@ -1,5 +1,7 @@
 package com.yandex.taskmanager.service;
 
+import com.yandex.taskmanager.model.Epic;
+import com.yandex.taskmanager.model.SubTask;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -31,7 +33,7 @@ class InMemoryHistoryManagerTest {
     }
 
     @Test
-    public void addWorksProperly() {
+    public void addWorksCorrectly() {
         Task task = new Task(1, "ЗАДАЧА №1", "ОПИСАНИЕ 1");
 
         manager.add(task);
@@ -100,7 +102,7 @@ class InMemoryHistoryManagerTest {
     }
 
     @Test
-    public void removeWorksProperly() {
+    public void removeWorksCorrectly() {
         createTenTaskListForTests();
 
         manager.remove(5);
@@ -156,7 +158,7 @@ class InMemoryHistoryManagerTest {
     }
 
     @Test
-    public void clearHistoryWorksProperly() {
+    public void clearHistoryWorksCorrectly() {
         createTenTaskListForTests();
 
         manager.clearHistory();
@@ -179,19 +181,27 @@ class InMemoryHistoryManagerTest {
                 "совпадать с размером списка менеджера.");
 
         for (int i = 0; i < tasksToCheck.size(); i++) {
-            Task managerListTask = initialTasks.get(i);
-            Task checkListTask = tasksToCheck.get(i);
+            Task initialTask = initialTasks.get(i);
+            Task taskToCheck = tasksToCheck.get(i);
 
-            assertEquals(managerListTask.getClass(), checkListTask.getClass(),
+            assertEquals(initialTask.getClass(), taskToCheck.getClass(),
                     "Классы задач не совпадают на позиции " + i);
-            assertEquals(managerListTask.getId(), checkListTask.getId(),
+            assertEquals(initialTask.getId(), taskToCheck.getId(),
                     "ID задач не совпадает на позиции " + i);
-            assertEquals(managerListTask.getName(), checkListTask.getName(),
+            assertEquals(initialTask.getName(), taskToCheck.getName(),
                     "Имя задачи не совпадает на позиции " + i);
-            assertEquals(managerListTask.getDescription(), checkListTask.getDescription(),
+            assertEquals(initialTask.getDescription(), taskToCheck.getDescription(),
                     "Описание не совпадает на позиции " + i);
-            assertEquals(managerListTask.getStatus(), checkListTask.getStatus(),
+            assertEquals(initialTask.getStatus(), taskToCheck.getStatus(),
                     "Статус не совпадает на позиции " + i);
+            if (initialTask instanceof Epic initialEpic && taskToCheck instanceof Epic epicToCheck) {
+                assertEquals(initialEpic.getSubTaskIdList(), epicToCheck.getSubTaskIdList(),
+                        "Список subTaskIdList эпика не совпадает на позиции " + i);
+            }
+            if (initialTask instanceof SubTask initialSubTask && taskToCheck instanceof SubTask subTaskToCheck) {
+                assertEquals(initialSubTask.getEpicId(), subTaskToCheck.getEpicId(),
+                        "epicId подзадачи не совпадает на позиции " + i);
+            }
         }
     }
 }
