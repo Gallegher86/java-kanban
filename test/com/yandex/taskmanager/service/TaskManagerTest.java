@@ -832,19 +832,27 @@ abstract class TaskManagerTest<T extends TaskManager> {
                 "совпадать с размером списка менеджера.");
 
         for (int i = 0; i < tasksToCheck.size(); i++) {
-            Task initialListTask = initialTasks.get(i);
-            Task checkListTask = tasksToCheck.get(i);
+            Task initialTask = initialTasks.get(i);
+            Task taskToCheck = tasksToCheck.get(i);
 
-            assertEquals(initialListTask.getClass(), checkListTask.getClass(),
+            assertEquals(initialTask.getClass(), taskToCheck.getClass(),
                     "Классы задач не совпадают на позиции " + i);
-            assertEquals(initialListTask.getId(), checkListTask.getId(),
+            assertEquals(initialTask.getId(), taskToCheck.getId(),
                     "ID задач не совпадает на позиции " + i);
-            assertEquals(initialListTask.getName(), checkListTask.getName(),
+            assertEquals(initialTask.getName(), taskToCheck.getName(),
                     "Имя задачи не совпадает на позиции " + i);
-            assertEquals(initialListTask.getDescription(), checkListTask.getDescription(),
+            assertEquals(initialTask.getDescription(), taskToCheck.getDescription(),
                     "Описание не совпадает на позиции " + i);
-            assertEquals(initialListTask.getStatus(), checkListTask.getStatus(),
+            assertEquals(initialTask.getStatus(), taskToCheck.getStatus(),
                     "Статус не совпадает на позиции " + i);
+            if (initialTask instanceof Epic initialEpic && taskToCheck instanceof Epic epicToCheck) {
+                assertEquals(initialEpic.getSubTaskIdList(), epicToCheck.getSubTaskIdList(),
+                        "Список subTaskIdList эпика не совпадает на позиции " + i);
+            }
+            if (initialTask instanceof SubTask initialSubTask && taskToCheck instanceof SubTask subTaskToCheck) {
+                assertEquals(initialSubTask.getEpicId(), subTaskToCheck.getEpicId(),
+                        "epicId подзадачи не совпадает на позиции " + i);
+            }
         }
     }
 }
