@@ -171,7 +171,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
             return tasksString;
         }
 
-        String[] lines = dataStream.split("\\R");
+        String[] lines = dataStream.split(System.lineSeparator());
 
         for (int i = 1; i < lines.length; i++) {
             tasksString.add(lines[i]);
