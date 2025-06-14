@@ -11,10 +11,10 @@ import java.util.HashMap;
 import java.util.Optional;
 
 public class InMemoryTaskManager implements TaskManager {
-    private int idCounter = 0;
-    private final HashMap<Integer, Task> tasks = new HashMap<>();
-    private final HashMap<Integer, Epic> epics = new HashMap<>();
-    private final HashMap<Integer, SubTask> subTasks = new HashMap<>();
+    protected int idCounter = 0;
+    protected final HashMap<Integer, Task> tasks = new HashMap<>();
+    protected final HashMap<Integer, Epic> epics = new HashMap<>();
+    protected final HashMap<Integer, SubTask> subTasks = new HashMap<>();
     private final HistoryManager historyManager = Managers.getDefaultHistoryManager();
 
     @Override
@@ -230,7 +230,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     private void checkTaskNotNull(Task task) {
         if (task == null) {
-            throw new NullPointerException("The Task provided to Task Manager is null.");
+            throw new NullPointerException("Task provided to Task Manager is null.");
         }
     }
 
@@ -279,7 +279,7 @@ public class InMemoryTaskManager implements TaskManager {
         subTasks.remove(id);
     }
 
-    private void updateEpicStatus(int id) {
+    protected void updateEpicStatus(int id) {
         Epic epic = epics.get(id);
         List<Integer> subTaskIds = epic.getSubTaskIdList();
 
@@ -312,7 +312,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     private void addSubTaskIdToEpic(Epic epic, int subTaskId) {
-        List<Integer> subTaskIds = new ArrayList<>(epic.getSubTaskIdList());
+        List<Integer> subTaskIds = epic.getSubTaskIdList();
 
         subTaskIds.add(subTaskId);
         Epic updatedEpic = new Epic(epic, subTaskIds);
@@ -320,7 +320,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     private void removeSubTaskIdFromEpic(Epic epic, int subTaskId) {
-        List<Integer> subTaskIds = new ArrayList<>(epic.getSubTaskIdList());
+        List<Integer> subTaskIds = epic.getSubTaskIdList();
 
         subTaskIds.remove(Integer.valueOf(subTaskId));
         Epic updatedEpic = new Epic(epic, subTaskIds);

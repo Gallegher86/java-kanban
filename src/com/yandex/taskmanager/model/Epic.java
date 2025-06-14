@@ -28,14 +28,13 @@ public class Epic extends Task {
         return new ArrayList<>(subTaskIds);
     }
 
+    public void addSubTaskId(Integer subTaskId) {
+        subTaskIds.add(subTaskId);
+    }
+
     @Override
     public String toString() {
-        return "Epic{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", status=" + status +
-                '}';
+        return String.format("%s,%s,%s,%s,%s", id, TaskType.EPIC, name, status, description);
     }
 }
 
