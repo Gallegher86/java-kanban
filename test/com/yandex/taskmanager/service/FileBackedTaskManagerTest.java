@@ -67,32 +67,24 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
 
     @Test
     public void loadFromAnEmptyFileWorksCorrectly() {
-        try {
-            FileBackedTaskManager newManager = FileBackedTaskManager.loadFromFile(tempFile);
-            checkTaskCountForEmptyManager(newManager);
-        } catch (RuntimeException e) {
-            throw new RuntimeException(e);
-        }
+        FileBackedTaskManager newManager = FileBackedTaskManager.loadFromFile(tempFile);
+        checkTaskCountForEmptyManager(newManager);
     }
 
     @Test
     public void saveAndLoadWorksCorrectly() {
-        try {
-            List<Task> tasksInOldManager;
-            List<Task> tasksInNewManager;
+        List<Task> tasksInOldManager;
+        List<Task> tasksInNewManager;
 
-            createSixTaskListForTests(manager);
+        createSixTaskListForTests(manager);
 
-            FileBackedTaskManager newManager = FileBackedTaskManager.loadFromFile(tempFile);
+        FileBackedTaskManager newManager = FileBackedTaskManager.loadFromFile(tempFile);
 
-            tasksInOldManager = manager.getAllTasks();
-            tasksInNewManager = newManager.getAllTasks();
+        tasksInOldManager = manager.getAllTasks();
+        tasksInNewManager = newManager.getAllTasks();
 
-            checkTaskCountForSixTasks(newManager);
-            checkTasksUnchangedCustom(tasksInOldManager, tasksInNewManager);
-        } catch (RuntimeException e) {
-            throw new RuntimeException(e);
-        }
+        checkTaskCountForSixTasks(newManager);
+        checkTasksUnchangedCustom(tasksInOldManager, tasksInNewManager);
     }
 
     @Test
