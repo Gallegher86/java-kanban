@@ -94,9 +94,9 @@ abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     public void addTaskMustThrowExceptionIfAddTaskWithStatusNotNew() {
         Task notNewStatusTask = new Task(0, "Задача", "Описание", Status.IN_PROGRESS);
-        Epic newEpic = new Epic("Эпик", "Описание");
         SubTask notNewStatusSubTask = new SubTask(0, "Подзадача", "Описание", Status.IN_PROGRESS, 1);
-        Epic notNewStatusEpic = new Epic(newEpic, Status.IN_PROGRESS);
+        Epic notNewStatusEpic = new Epic("Эпик", "Описание");
+        notNewStatusEpic.setStatus(Status.IN_PROGRESS);
 
         manager.addEpic(new Epic("Эпик", "Для подзадачи"));
 

@@ -128,7 +128,7 @@ public class InMemoryTaskManager implements TaskManager {
             List<Integer> subTaskIds = epic.getSubTaskIdList();
             List<SubTask> subTasks = new ArrayList<>();
 
-            for (int subTaskId : subTaskIds) {
+            for (int subTaskId : subTaskIds) {//добавить стрим
                 SubTask subTask = this.subTasks.get(subTaskId);
                 subTasks.add(subTask);
             }
@@ -159,7 +159,7 @@ public class InMemoryTaskManager implements TaskManager {
         }
 
         if (isTaskOkToUpdate(task)) {
-            tasks.put(task.getId(), new Task(task));
+            tasks.put(task.getId(), task);
         }
     }
 
@@ -193,7 +193,7 @@ public class InMemoryTaskManager implements TaskManager {
 
             List<Integer> checkIds = epic.getSubTaskIdList();
             if (checkIds.contains(subTaskId)) {
-                subTasks.put(subTaskId, new SubTask(subTask));
+                subTasks.put(subTaskId, subTask);
                 updateEpicStatus(epicId);
             } else {
                 throw new IllegalArgumentException("Cannot update SubTask. In Epic with EpicId: " + epicId +
@@ -252,12 +252,12 @@ public class InMemoryTaskManager implements TaskManager {
         subTasks.put(newSubTask.getId(), newSubTask);
 
         Epic epic = epics.get(newSubTask.getEpicId());
-        addSubTaskIdToEpic(epic, newSubTask.getId());
+        epic.addSubTaskId(newSubTask.getId());
         updateEpicStatus(epic.getId());
     }
 
     private void deleteEpicById(int id) {
-        Epic epic = epics.get(id);
+        Epic epic = epics.get(id);//добавить стрим
         if (epic != null) {
             for (int subTaskId : epic.getSubTaskIdList()) {
                 historyManager.remove(subTaskId);
@@ -272,8 +272,8 @@ public class InMemoryTaskManager implements TaskManager {
         SubTask subTask = subTasks.get(id);
         if (subTask != null) {
             Epic epic = epics.get(subTask.getEpicId());
-            removeSubTaskIdFromEpic(epic, subTask.getId());
-            updateEpicStatus(subTask.getEpicId());
+            epic.removeSubTaskId(subTask.getId());
+            updateEpicStatus(epic.getId());
         }
         historyManager.remove(id);
         subTasks.remove(id);
@@ -284,12 +284,12 @@ public class InMemoryTaskManager implements TaskManager {
         List<Integer> subTaskIds = epic.getSubTaskIdList();
 
         if (subTaskIds.isEmpty()) {
-            setEpicStatus(epic, Status.NEW);
+            epic.setStatus(Status.NEW);
         } else {
             boolean isNew = true;
             boolean isDone = true;
 
-            for (int subTaskId : subTaskIds) {
+            for (int subTaskId : subTaskIds) {//добавить стрим
                 SubTask subTask = subTasks.get(subTaskId);
                 Status status = subTask.getStatus();
 
@@ -302,34 +302,13 @@ public class InMemoryTaskManager implements TaskManager {
             }
 
             if (isNew) {
-                setEpicStatus(epic, Status.NEW);
+                epic.setStatus(Status.NEW);
             } else if (isDone) {
-                setEpicStatus(epic, Status.DONE);
+                epic.setStatus(Status.DONE);
             } else {
-                setEpicStatus(epic, Status.IN_PROGRESS);
+                epic.setStatus(Status.IN_PROGRESS);
             }
         }
-    }
-
-    private void addSubTaskIdToEpic(Epic epic, int subTaskId) {
-        List<Integer> subTaskIds = epic.getSubTaskIdList();
-
-        subTaskIds.add(subTaskId);
-        Epic updatedEpic = new Epic(epic, subTaskIds);
-        epics.put(updatedEpic.getId(), updatedEpic);
-    }
-
-    private void removeSubTaskIdFromEpic(Epic epic, int subTaskId) {
-        List<Integer> subTaskIds = epic.getSubTaskIdList();
-
-        subTaskIds.remove(Integer.valueOf(subTaskId));
-        Epic updatedEpic = new Epic(epic, subTaskIds);
-        epics.put(updatedEpic.getId(), updatedEpic);
-    }
-
-    private void setEpicStatus(Epic epic, Status status) {
-        Epic updatedEpic = new Epic(epic, status);
-        epics.put(updatedEpic.getId(), updatedEpic);
     }
 
     @Override
