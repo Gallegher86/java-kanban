@@ -5,16 +5,20 @@ import com.yandex.taskmanager.model.Epic;
 import com.yandex.taskmanager.model.SubTask;
 import com.yandex.taskmanager.model.Status;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Optional;
+import java.util.*;
+import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.util.function.Function;
 
 public class InMemoryTaskManager implements TaskManager {
+    private static final int CALENDAR_INTERVAL = 15;
+    private static final int CALENDAR_YEARS = 1;
     protected int idCounter = 0;
     protected final HashMap<Integer, Task> tasks = new HashMap<>();
     protected final HashMap<Integer, Epic> epics = new HashMap<>();
     protected final HashMap<Integer, SubTask> subTasks = new HashMap<>();
+    protected final TreeSet<Task> prioritizedTasks = new TreeSet<>();
+    protected final TreeMap<LocalDateTime, Boolean> calendar = initializeCalendar();
     private final HistoryManager historyManager = Managers.getDefaultHistoryManager();
 
     @Override
@@ -202,6 +206,22 @@ public class InMemoryTaskManager implements TaskManager {
         }
     }
 
+    public TreeSet<Task> getPrioritizedTasks() {
+        return new TreeSet<>(prioritizedTasks);
+    }
+
+    private void addTaskToPrioritizedTasks(Task task) {
+        if (task.getEndTime() == null || task instanceof Epic) {
+            return;
+        }
+
+        if (!IsIntervalFree(task.getStartTime(), task.getEndTime())) {
+            throw new IllegalArgumentException("Cannot add Task - task interval is occupied");
+        }
+
+        prioritizedTasks.add(task);
+    }
+
     private boolean isTaskOkToAdd(Task task) {
         checkTaskNotNull(task);
 
@@ -310,6 +330,64 @@ public class InMemoryTaskManager implements TaskManager {
             }
         }
     }
+
+    private TreeMap<LocalDateTime, Boolean> initializeCalendar() {
+        TreeMap<LocalDateTime, Boolean> calendar = new TreeMap<>();
+        LocalDateTime start = LocalDate.now().atStartOfDay();
+        LocalDateTime end = start.plusYears(CALENDAR_YEARS);
+
+        while (!start.isAfter(end)) {
+            calendar.put(start, true);
+            start = start.plusMinutes(CALENDAR_INTERVAL);
+        }
+        return calendar;
+    }
+
+    private void markInterval(LocalDateTime startTime, LocalDateTime endTime) {
+        LocalDateTime roundedStartTime = roundDownTime.apply(startTime);
+        LocalDateTime roundedEndTime = roundUpTime.apply(endTime);
+
+        calendar.subMap(roundedStartTime, true,
+                        roundedEndTime, true)
+                .replaceAll((k, v) -> false);
+    }
+
+    private void freeInterval(LocalDateTime startTime, LocalDateTime endTime) {
+        LocalDateTime roundedStartTime = roundDownTime.apply(startTime);
+        LocalDateTime roundedEndTime = roundUpTime.apply(endTime);
+
+        calendar.subMap(roundedStartTime, true,
+                        roundedEndTime, true)
+                .replaceAll((k, v) -> true);
+    }
+
+    private boolean IsIntervalFree(LocalDateTime startTime, LocalDateTime endTime) {
+        LocalDateTime roundedStartTime = roundDownTime.apply(startTime);
+        LocalDateTime roundedEndTime = roundUpTime.apply(endTime);
+
+        if (!calendar.containsKey(roundedStartTime) || !calendar.containsKey(roundedEndTime)) {
+            throw new IllegalArgumentException("Task time is outside of calendar range.");
+        }
+
+        SortedMap<LocalDateTime, Boolean> taskInterval =
+                calendar.subMap(roundedStartTime, true,
+                        roundedEndTime, true);
+
+        return taskInterval.values().stream().allMatch(Boolean::booleanValue);
+    }
+
+    private final Function<LocalDateTime, LocalDateTime> roundDownTime = dt -> {
+        int minute = dt.getMinute();
+        int rounded = (minute / CALENDAR_INTERVAL) * CALENDAR_INTERVAL;
+        return dt.withMinute(rounded).withSecond(0).withNano(0);
+    };
+
+    private final Function<LocalDateTime, LocalDateTime> roundUpTime = dt -> {
+        int minute = dt.getMinute();
+        int mod = minute % CALENDAR_INTERVAL;
+        int delta = (mod == 0) ? 0 : CALENDAR_INTERVAL - mod;
+        return dt.plusMinutes(delta).withSecond(0).withNano(0);
+    };
 
     @Override
     public int getIdCounter() {
