@@ -400,7 +400,9 @@ public class InMemoryTaskManager implements TaskManager {
                 .max(LocalDateTime::compareTo)
                 .orElseThrow();
 
-        Duration duration = Duration.between(startTime, endTime);
+        Duration duration = epicSubTasks.stream()
+                .map(SubTask::getDuration)
+                .reduce(Duration.ZERO, Duration::plus);
 
         epic.setStartTime(startTime);
         epic.setEndTime(endTime);
