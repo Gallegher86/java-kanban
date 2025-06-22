@@ -17,7 +17,7 @@ public class InMemoryTaskManager implements TaskManager {
     protected final HashMap<Integer, Task> tasks = new HashMap<>();
     protected final HashMap<Integer, Epic> epics = new HashMap<>();
     protected final HashMap<Integer, SubTask> subTasks = new HashMap<>();
-    protected final TreeSet<Task> prioritizedTasks = new TreeSet<>();
+    protected final TreeSet<Task> prioritizedTasks = new TreeSet<>(Comparator.comparing(Task::getStartTime));
     protected final TreeMap<LocalDateTime, Boolean> calendar = initializeCalendar();
     private final HistoryManager historyManager = Managers.getDefaultHistoryManager();
 
@@ -210,18 +210,6 @@ public class InMemoryTaskManager implements TaskManager {
         return new TreeSet<>(prioritizedTasks);
     }
 
-    private void addTaskToPrioritizedTasks(Task task) {
-        if (task.getEndTime() == null || task instanceof Epic) {
-            return;
-        }
-
-        if (!IsIntervalFree(task.getStartTime(), task.getEndTime())) {
-            throw new IllegalArgumentException("Cannot add Task - task interval is occupied");
-        }
-
-        prioritizedTasks.add(task);
-    }
-
     private boolean isTaskOkToAdd(Task task) {
         checkTaskNotNull(task);
 
@@ -331,6 +319,45 @@ public class InMemoryTaskManager implements TaskManager {
         }
     }
 
+    private void addTaskToPrioritizedTasks(Task task) {
+        if (task.getEndTime() == null) {
+            return;
+        }
+
+        if (!isIntervalFree(task)) {
+            throw new IllegalArgumentException("Cannot add Task - task interval is occupied");
+        }
+        markInterval(task);
+        prioritizedTasks.add(task);
+    }
+
+    private void removeTaskFromPrioritizedTasks(Task task) {
+        if (task.getEndTime() == null || task instanceof Epic) {
+            return;
+        }
+
+        freeInterval(task);
+        prioritizedTasks.remove(task);
+    }
+
+    private void updateTaskInPrioritizedTasks(Task newTask, Task oldTask) {
+        if (newTask.getEndTime() == null) {
+            freeInterval(oldTask);
+            prioritizedTasks.remove(oldTask);
+            return;
+        }
+
+        freeInterval(oldTask);
+        if (isIntervalFree(newTask)) {
+            prioritizedTasks.remove(oldTask);
+            markInterval(newTask);
+            prioritizedTasks.add(newTask);
+        } else {
+            markInterval(oldTask);
+            throw new IllegalArgumentException("Cannot update Task - task interval is occupied");
+        }
+    }
+
     private TreeMap<LocalDateTime, Boolean> initializeCalendar() {
         TreeMap<LocalDateTime, Boolean> calendar = new TreeMap<>();
         LocalDateTime start = LocalDate.now().atStartOfDay();
@@ -343,27 +370,27 @@ public class InMemoryTaskManager implements TaskManager {
         return calendar;
     }
 
-    private void markInterval(LocalDateTime startTime, LocalDateTime endTime) {
-        LocalDateTime roundedStartTime = roundDownTime.apply(startTime);
-        LocalDateTime roundedEndTime = roundUpTime.apply(endTime);
+    private void markInterval(Task task) {
+        LocalDateTime roundedStartTime = roundDownTime.apply(task.getStartTime());
+        LocalDateTime roundedEndTime = roundUpTime.apply(task.getEndTime());
 
         calendar.subMap(roundedStartTime, true,
                         roundedEndTime, true)
                 .replaceAll((k, v) -> false);
     }
 
-    private void freeInterval(LocalDateTime startTime, LocalDateTime endTime) {
-        LocalDateTime roundedStartTime = roundDownTime.apply(startTime);
-        LocalDateTime roundedEndTime = roundUpTime.apply(endTime);
+    private void freeInterval(Task task) {
+        LocalDateTime roundedStartTime = roundDownTime.apply(task.getStartTime());
+        LocalDateTime roundedEndTime = roundUpTime.apply(task.getEndTime());
 
         calendar.subMap(roundedStartTime, true,
                         roundedEndTime, true)
                 .replaceAll((k, v) -> true);
     }
 
-    private boolean IsIntervalFree(LocalDateTime startTime, LocalDateTime endTime) {
-        LocalDateTime roundedStartTime = roundDownTime.apply(startTime);
-        LocalDateTime roundedEndTime = roundUpTime.apply(endTime);
+    private boolean isIntervalFree(Task task) {
+        LocalDateTime roundedStartTime = roundDownTime.apply(task.getStartTime());
+        LocalDateTime roundedEndTime = roundUpTime.apply(task.getEndTime());
 
         if (!calendar.containsKey(roundedStartTime) || !calendar.containsKey(roundedEndTime)) {
             throw new IllegalArgumentException("Task time is outside of calendar range.");

@@ -4,7 +4,7 @@ import java.util.Objects;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
-public class Task implements Comparable<Task> {
+public class Task {
     protected final int id;
     protected final String name;
     protected final String description;
@@ -102,10 +102,5 @@ public class Task implements Comparable<Task> {
     @Override
     public String toString() {
         return String.format("%s,%s,%s,%s,%s", id, TaskType.TASK, name, status, description);
-    }
-
-    @Override
-    public int compareTo(Task other) {
-        return this.startTime.compareTo(other.startTime);
     }
 }
