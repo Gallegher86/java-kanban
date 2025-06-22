@@ -5,9 +5,20 @@ import com.yandex.taskmanager.model.Epic;
 import com.yandex.taskmanager.model.SubTask;
 import com.yandex.taskmanager.model.Status;
 
-import java.util.*;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.SortedMap;
+import java.util.HashMap;
+import java.util.TreeSet;
+import java.util.TreeMap;
+import java.util.Comparator;
+import java.util.Optional;
+import java.util.Objects;
+
 import java.time.LocalDateTime;
 import java.time.LocalDate;
+import java.time.Duration;
+
 import java.util.function.Function;
 
 public class InMemoryTaskManager implements TaskManager {
@@ -67,6 +78,10 @@ public class InMemoryTaskManager implements TaskManager {
         return allTasks;
     }
 
+    public TreeSet<Task> getPrioritizedTasks() {
+        return new TreeSet<>(prioritizedTasks);
+    }
+
     @Override
     public List<Task> getTasks() {
         return new ArrayList<>(tasks.values());
@@ -98,6 +113,8 @@ public class InMemoryTaskManager implements TaskManager {
         epics.clear();
         subTasks.clear();
         historyManager.clearHistory();
+        prioritizedTasks.clear();
+        calendar.replaceAll((_, _) -> Boolean.TRUE);
         idCounter = 0;
     }
 
@@ -145,11 +162,13 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void deleteTaskById(int id) {
         if (tasks.containsKey(id)) {
+            removeFromPrioritizedTasks(tasks.get(id));
             historyManager.remove(id);
             tasks.remove(id);
         } else if (epics.containsKey(id)) {
             deleteEpicById(id);
         } else if (subTasks.containsKey(id)) {
+            removeFromPrioritizedTasks(subTasks.get(id));
             deleteSubTaskById(id);
         } else {
             throw new IllegalArgumentException("Task with Id: " + id + " not found in TaskManager.");
@@ -163,6 +182,7 @@ public class InMemoryTaskManager implements TaskManager {
         }
 
         if (isTaskOkToUpdate(task)) {
+            updatePrioritizedTasks(task, tasks.get(task.getId()));
             tasks.put(task.getId(), task);
         }
     }
@@ -180,6 +200,7 @@ public class InMemoryTaskManager implements TaskManager {
             Epic updatedEpic = new Epic(epic, oldEpic.getSubTaskIdList());
             epics.put(epicId, updatedEpic);
             updateEpicStatus(epicId);
+            setEpicTime(epicId);
         }
     }
 
@@ -197,17 +218,15 @@ public class InMemoryTaskManager implements TaskManager {
 
             List<Integer> checkIds = epic.getSubTaskIdList();
             if (checkIds.contains(subTaskId)) {
+                updatePrioritizedTasks(subTask, subTasks.get(subTaskId));
                 subTasks.put(subTaskId, subTask);
                 updateEpicStatus(epicId);
+                setEpicTime(epicId);
             } else {
                 throw new IllegalArgumentException("Cannot update SubTask. In Epic with EpicId: " + epicId +
                         " there is no SubTask with Id: " + subTaskId + ".");
             }
         }
-    }
-
-    public TreeSet<Task> getPrioritizedTasks() {
-        return new TreeSet<>(prioritizedTasks);
     }
 
     private boolean isTaskOkToAdd(Task task) {
@@ -246,22 +265,26 @@ public class InMemoryTaskManager implements TaskManager {
         idCounter++;
         Task newTask = new Task(idCounter, task.getName(), task.getDescription());
         tasks.put(newTask.getId(), newTask);
+        addToPrioritizedTasks(newTask);
     }
 
     private void addToEpics(Epic epic) {
         idCounter++;
         Epic newEpic = new Epic(idCounter, epic.getName(), epic.getDescription());
         epics.put(newEpic.getId(), newEpic);
+        setEpicTime(newEpic.getId());
     }
 
     private void addToSubTasks(SubTask subTask) {
         idCounter++;
         SubTask newSubTask = new SubTask(idCounter, subTask.getName(), subTask.getDescription(), subTask.getEpicId());
         subTasks.put(newSubTask.getId(), newSubTask);
+        addToPrioritizedTasks(newSubTask);
 
         Epic epic = epics.get(newSubTask.getEpicId());
         epic.addSubTaskId(newSubTask.getId());
         updateEpicStatus(epic.getId());
+        setEpicTime(epic.getId());
     }
 
     private void deleteEpicById(int id) {
@@ -282,6 +305,7 @@ public class InMemoryTaskManager implements TaskManager {
             Epic epic = epics.get(subTask.getEpicId());
             epic.removeSubTaskId(subTask.getId());
             updateEpicStatus(epic.getId());
+            setEpicTime(epic.getId());
         }
         historyManager.remove(id);
         subTasks.remove(id);
@@ -319,7 +343,7 @@ public class InMemoryTaskManager implements TaskManager {
         }
     }
 
-    private void addTaskToPrioritizedTasks(Task task) {
+    private void addToPrioritizedTasks(Task task) {
         if (task.getEndTime() == null) {
             return;
         }
@@ -331,8 +355,8 @@ public class InMemoryTaskManager implements TaskManager {
         prioritizedTasks.add(task);
     }
 
-    private void removeTaskFromPrioritizedTasks(Task task) {
-        if (task.getEndTime() == null || task instanceof Epic) {
+    private void removeFromPrioritizedTasks(Task task) {
+        if (task.getEndTime() == null) {
             return;
         }
 
@@ -340,7 +364,7 @@ public class InMemoryTaskManager implements TaskManager {
         prioritizedTasks.remove(task);
     }
 
-    private void updateTaskInPrioritizedTasks(Task newTask, Task oldTask) {
+    private void updatePrioritizedTasks(Task newTask, Task oldTask) {
         if (newTask.getEndTime() == null) {
             freeInterval(oldTask);
             prioritizedTasks.remove(oldTask);
@@ -356,6 +380,39 @@ public class InMemoryTaskManager implements TaskManager {
             markInterval(oldTask);
             throw new IllegalArgumentException("Cannot update Task - task interval is occupied");
         }
+    }
+
+    private void setEpicTime(int id) {
+        Epic epic = epics.get(id);
+
+        List<SubTask> epicSubTasks = epic.getSubTaskIdList().stream()
+                .map(subTasks::get)
+                .filter(Objects::nonNull)
+                .filter(subTask -> subTask.getEndTime() != null)
+                .toList();
+
+        if (epicSubTasks.isEmpty()) {
+            epic.setStartTime(null);
+            epic.setEndTime(null);
+            epic.setDuration(Duration.ZERO);
+            return;
+        }
+
+        LocalDateTime startTime = epicSubTasks.stream()
+                .map(SubTask::getStartTime)
+                .min(LocalDateTime::compareTo)
+                .orElseThrow();
+
+        LocalDateTime endTime = epicSubTasks.stream()
+                .map(SubTask::getEndTime)
+                .max(LocalDateTime::compareTo)
+                .orElseThrow();
+
+        Duration duration = Duration.between(startTime, endTime);
+
+        epic.setStartTime(startTime);
+        epic.setEndTime(endTime);
+        epic.setDuration(duration);
     }
 
     private TreeMap<LocalDateTime, Boolean> initializeCalendar() {
@@ -376,7 +433,7 @@ public class InMemoryTaskManager implements TaskManager {
 
         calendar.subMap(roundedStartTime, true,
                         roundedEndTime, true)
-                .replaceAll((k, v) -> false);
+                .replaceAll((_, _) -> Boolean.TRUE);
     }
 
     private void freeInterval(Task task) {
@@ -385,7 +442,7 @@ public class InMemoryTaskManager implements TaskManager {
 
         calendar.subMap(roundedStartTime, true,
                         roundedEndTime, true)
-                .replaceAll((k, v) -> true);
+                .replaceAll((_, _) -> Boolean.TRUE);
     }
 
     private boolean isIntervalFree(Task task) {
