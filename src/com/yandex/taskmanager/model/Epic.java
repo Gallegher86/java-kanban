@@ -64,7 +64,16 @@ public class Epic extends Task {
 
     @Override
     public String toString() {
-        return String.format("%s,%s,%s,%s,%s", id, TaskType.EPIC, name, status, description);
+        return String.format("%s,%s,%s,%s,%s,%s,%s,%s",
+                id,
+                TaskType.EPIC,
+                name,
+                status,
+                description,
+                startTime != null ? startTime.format(DATE_TIME_FORMATTER) : "null",
+                duration != null ? duration.toMinutes() : "null",
+                endTime != null ? endTime.format(DATE_TIME_FORMATTER) : "null"
+        );
     }
 }
 

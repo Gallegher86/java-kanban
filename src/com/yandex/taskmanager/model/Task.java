@@ -3,8 +3,10 @@ package com.yandex.taskmanager.model;
 import java.util.Objects;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class Task {
+    public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yy HH:mm");
     protected final int id;
     protected final String name;
     protected final String description;
@@ -101,6 +103,14 @@ public class Task {
 
     @Override
     public String toString() {
-        return String.format("%s,%s,%s,%s,%s", id, TaskType.TASK, name, status, description);
+        return String.format("%s,%s,%s,%s,%s,%s,%s",
+                id,
+                TaskType.TASK,
+                name,
+                status,
+                description,
+                startTime != null ? startTime.format(DATE_TIME_FORMATTER) : "null",
+                duration != null ? duration.toMinutes() : "null"
+        );
     }
 }
