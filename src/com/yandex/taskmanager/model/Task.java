@@ -22,7 +22,7 @@ public class Task {
         this.id = 0;
         this.name = name;
         this.description = description;
-        this.startTime = startTime;
+        this.startTime = (startTime != null) ? startTime.withSecond(0).withNano(0) : null;
         this.duration = duration;
     }
 
@@ -36,7 +36,7 @@ public class Task {
         this.id = id;
         this.name = name;
         this.description = description;
-        this.startTime = startTime;
+        this.startTime = (startTime != null) ? startTime.withSecond(0).withNano(0) : null;
         this.duration = duration;
     }
 
@@ -52,7 +52,7 @@ public class Task {
         this.name = name;
         this.description = description;
         this.status = status;
-        this.startTime = startTime;
+        this.startTime = (startTime != null) ? startTime.withSecond(0).withNano(0) : null;
         this.duration = duration;
     }
 
