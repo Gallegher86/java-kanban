@@ -31,10 +31,6 @@ public class InMemoryTaskManager implements TaskManager {
     protected final TreeMap<LocalDateTime, Boolean> calendar = initializeCalendar();
     private final HistoryManager historyManager = Managers.getDefaultHistoryManager();
 
-    public TreeMap<LocalDateTime, Boolean> getCalendar() {
-        return new TreeMap<>(calendar);
-    }
-
     @Override
     public void addTask(Task task) {
         if (task instanceof Epic || task instanceof SubTask) {
@@ -375,7 +371,7 @@ public class InMemoryTaskManager implements TaskManager {
         }
     }
 
-    private void setEpicTime(int id) {
+    protected void setEpicTime(int id) {
         Epic epic = epics.get(id);
 
         List<SubTask> epicSubTasks = epic.getSubTaskIdList().stream()
@@ -421,7 +417,7 @@ public class InMemoryTaskManager implements TaskManager {
         return calendar;
     }
 
-    private void markInterval(Task task) {
+    protected void markInterval(Task task) {
         LocalDateTime roundedStartTime = roundDownTime.apply(task.getStartTime());
         LocalDateTime roundedEndTime = roundUpTime.apply(task.getEndTime());
 

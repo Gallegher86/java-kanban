@@ -42,7 +42,7 @@ public class SubTask extends Task {
 
     @Override
     public String toString() {
-        return String.format("%s,%s,%s,%s,%s,%s,%s,%s",
+        return String.format("%s,%s,%s,%s,%s,%s,%s,%s,%s",
                 id,
                 TaskType.SUBTASK,
                 name,
@@ -50,6 +50,7 @@ public class SubTask extends Task {
                 description,
                 epicId,
                 startTime != null ? startTime.format(DATE_TIME_FORMATTER) : "null",
-                duration != null ? duration.toMinutes() : "null");
+                duration != null ? duration.toMinutes() : "null",
+                getEndTime() != null ? getEndTime().format(DATE_TIME_FORMATTER) : "null");
     }
 }
