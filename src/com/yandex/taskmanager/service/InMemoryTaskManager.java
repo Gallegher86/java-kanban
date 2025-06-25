@@ -335,10 +335,10 @@ public class InMemoryTaskManager implements TaskManager {
             return;
         }
 
-        if (!isIntervalFree(task)) {
+        if (!isCalendarIntervalFree(task)) {
             throw new IllegalArgumentException("Cannot add Task - task interval is occupied");
         }
-        markInterval(task);
+        markCalendarInterval(task);
         prioritizedTasks.add(task);
     }
 
@@ -347,26 +347,26 @@ public class InMemoryTaskManager implements TaskManager {
             return;
         }
 
-        freeInterval(task);
+        freeCalendarInterval(task);
         prioritizedTasks.remove(task);
     }
 
     private void updatePrioritizedTasks(Task newTask, Task oldTask) {
         if (newTask.getEndTime() == null) {
             if (prioritizedTasks.contains(oldTask)) {
-                freeInterval(oldTask);
+                freeCalendarInterval(oldTask);
                 prioritizedTasks.remove(oldTask);
             }
             return;
         }
 
-        freeInterval(oldTask);
-        if (isIntervalFree(newTask)) {
+        freeCalendarInterval(oldTask);
+        if (isCalendarIntervalFree(newTask)) {
             prioritizedTasks.remove(oldTask);
-            markInterval(newTask);
+            markCalendarInterval(newTask);
             prioritizedTasks.add(newTask);
         } else {
-            markInterval(oldTask);
+            markCalendarInterval(oldTask);
             throw new IllegalArgumentException("Cannot update Task - task interval is occupied");
         }
     }
@@ -382,7 +382,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (epicSubTasks.isEmpty()) {
             epic.setStartTime(null);
             epic.setEndTime(null);
-            epic.setDuration(Duration.ZERO);
+            epic.setDuration(null);
             return;
         }
 
@@ -417,7 +417,7 @@ public class InMemoryTaskManager implements TaskManager {
         return calendar;
     }
 
-    protected void markInterval(Task task) {
+    protected void markCalendarInterval(Task task) {
         LocalDateTime roundedStartTime = roundDownTime.apply(task.getStartTime());
         LocalDateTime roundedEndTime = roundUpTime.apply(task.getEndTime());
 
@@ -425,7 +425,7 @@ public class InMemoryTaskManager implements TaskManager {
                 .replaceAll((_, _) -> Boolean.FALSE);
     }
 
-    private void freeInterval(Task task) {
+    private void freeCalendarInterval(Task task) {
         LocalDateTime roundedStartTime = roundDownTime.apply(task.getStartTime());
         LocalDateTime roundedEndTime = roundUpTime.apply(task.getEndTime());
 
@@ -433,7 +433,7 @@ public class InMemoryTaskManager implements TaskManager {
                 .replaceAll((_, _) -> Boolean.TRUE);
     }
 
-    private boolean isIntervalFree(Task task) {
+    private boolean isCalendarIntervalFree(Task task) {
         LocalDateTime roundedStartTime = roundDownTime.apply(task.getStartTime());
         LocalDateTime roundedEndTime = roundUpTime.apply(task.getEndTime());
 

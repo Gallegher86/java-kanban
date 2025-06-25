@@ -36,6 +36,9 @@ class InMemoryHistoryManagerTest {
     public void addWorksCorrectly() {
         Task task = new Task(1, "ЗАДАЧА №1", "ОПИСАНИЕ 1");
 
+        assertTrue(manager.getHistory().isEmpty(),
+                "Список менеджера должен быть пуст до добавления задач.");
+
         manager.add(task);
         Task taskInManager = manager.getHistory().getFirst();
 

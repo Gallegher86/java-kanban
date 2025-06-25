@@ -141,7 +141,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
 
             if (subTask.getEndTime() != null) {
                 prioritizedTasks.add(subTask);
-                markInterval(subTask);
+                markCalendarInterval(subTask);
             }
 
             Epic epic = epics.get(subTask.getEpicId());
@@ -153,7 +153,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
 
             if (task.getEndTime() != null) {
                 prioritizedTasks.add(task);
-                markInterval(task);
+                markCalendarInterval(task);
             }
         }
     }
