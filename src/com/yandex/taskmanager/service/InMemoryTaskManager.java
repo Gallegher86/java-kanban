@@ -113,7 +113,7 @@ public class InMemoryTaskManager implements TaskManager {
         subTasks.clear();
         historyManager.clearHistory();
         prioritizedTasks.clear();
-        calendar.replaceAll((_, _) -> Boolean.TRUE);
+        calendar.replaceAll((k, v) -> Boolean.TRUE);
         idCounter = 0;
     }
 
@@ -422,7 +422,7 @@ public class InMemoryTaskManager implements TaskManager {
         LocalDateTime roundedEndTime = roundUpTime.apply(task.getEndTime());
 
         calendar.subMap(roundedStartTime, roundedEndTime)
-                .replaceAll((_, _) -> Boolean.FALSE);
+                .replaceAll((k, v) -> Boolean.FALSE);
     }
 
     private void freeCalendarInterval(Task task) {
@@ -430,7 +430,7 @@ public class InMemoryTaskManager implements TaskManager {
         LocalDateTime roundedEndTime = roundUpTime.apply(task.getEndTime());
 
         calendar.subMap(roundedStartTime, roundedEndTime)
-                .replaceAll((_, _) -> Boolean.TRUE);
+                .replaceAll((k, v) -> Boolean.TRUE);
     }
 
     private boolean isCalendarIntervalFree(Task task) {
