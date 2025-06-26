@@ -40,16 +40,10 @@ public class Epic extends Task {
         this.status = status;
     }
 
-    public void setStartTime(LocalDateTime startTime) {
+    public void setEpicTime (LocalDateTime startTime, Duration duration, LocalDateTime endTime) {
         this.startTime = startTime;
-    }
-
-    public void setEndTime(LocalDateTime endTime) {
-        this.endTime = endTime;
-    }
-
-    public void setDuration(Duration duration) {
         this.duration = duration;
+        this.endTime = endTime;
     }
 
     @Override

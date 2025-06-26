@@ -380,9 +380,7 @@ public class InMemoryTaskManager implements TaskManager {
                 .toList();
 
         if (epicSubTasks.isEmpty()) {
-            epic.setStartTime(null);
-            epic.setEndTime(null);
-            epic.setDuration(null);
+            epic.setEpicTime(null, null, null);
             return;
         }
 
@@ -400,9 +398,7 @@ public class InMemoryTaskManager implements TaskManager {
                 .map(SubTask::getDuration)
                 .reduce(Duration.ZERO, Duration::plus);
 
-        epic.setStartTime(startTime);
-        epic.setEndTime(endTime);
-        epic.setDuration(duration);
+        epic.setEpicTime(startTime, duration, endTime);
     }
 
     private TreeMap<LocalDateTime, Boolean> initializeCalendar() {
