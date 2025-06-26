@@ -7,7 +7,7 @@ import java.time.format.DateTimeFormatter;
 
 public class Task {
     public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yy HH:mm");
-    protected final int id;
+    protected int id;
     protected final String name;
     protected final String description;
     protected Status status = Status.NEW;
@@ -15,13 +15,11 @@ public class Task {
     protected Duration duration;
 
     public Task(String name, String description) {
-        this.id = 0;
         this.name = name;
         this.description = description;
     }
 
     public Task(String name, String description, LocalDateTime startTime, Duration duration) {
-        this.id = 0;
         this.name = name;
         this.description = description;
         this.startTime = (startTime != null) ? startTime.withSecond(0).withNano(0) : null;
