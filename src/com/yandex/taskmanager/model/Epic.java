@@ -40,7 +40,7 @@ public class Epic extends Task {
         this.status = status;
     }
 
-    public void setEpicTime (LocalDateTime startTime, Duration duration, LocalDateTime endTime) {
+    public void setEpicTime(LocalDateTime startTime, Duration duration, LocalDateTime endTime) {
         this.startTime = startTime;
         this.duration = duration;
         this.endTime = endTime;
@@ -53,7 +53,7 @@ public class Epic extends Task {
 
     @Override
     public String toString() {
-        return String.format("%s,%s,%s,%s,%s,%s,%s,%s,%s",
+        return String.format("%s,%s,%s,%s,%s,%s,%s,%s",
                 id,
                 TaskType.EPIC,
                 name,
@@ -61,9 +61,7 @@ public class Epic extends Task {
                 description,
                 "-",
                 startTime != null ? startTime.format(DATE_TIME_FORMATTER) : "null",
-                duration != null ? duration.toMinutes() : "null",
-                endTime != null ? endTime.format(DATE_TIME_FORMATTER) : "null"
-        );
+                duration != null ? duration.toMinutes() : "null");
     }
 }
 
