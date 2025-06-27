@@ -6,6 +6,7 @@ import com.yandex.taskmanager.model.Task;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.TreeSet;
 
 public interface TaskManager {
     void addTask(Task task);
@@ -15,6 +16,8 @@ public interface TaskManager {
     void addSubTask(SubTask subTask);
 
     List<Task> getAllTasks();
+
+    TreeSet<Task> getPrioritizedTasks();
 
     List<Task> getTasks();
 

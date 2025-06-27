@@ -8,15 +8,14 @@ import com.yandex.taskmanager.model.Epic;
 import com.yandex.taskmanager.model.SubTask;
 import com.yandex.taskmanager.model.Status;
 
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 abstract class TaskManagerTest<T extends TaskManager> {
     protected T manager;
@@ -28,11 +27,14 @@ abstract class TaskManagerTest<T extends TaskManager> {
     protected SubTask subTask2;
     protected SubTask subTask3;
 
+    LocalDateTime now;
+
     protected abstract T createManager();
 
     @BeforeEach
     void setUp() {
         manager = createManager();
+        now = LocalDate.now().atStartOfDay();
     }
 
     // ТЕСТЫ addTask.
@@ -94,9 +96,9 @@ abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     public void addTaskMustThrowExceptionIfAddTaskWithStatusNotNew() {
         Task notNewStatusTask = new Task(0, "Задача", "Описание", Status.IN_PROGRESS);
-        Epic newEpic = new Epic("Эпик", "Описание");
         SubTask notNewStatusSubTask = new SubTask(0, "Подзадача", "Описание", Status.IN_PROGRESS, 1);
-        Epic notNewStatusEpic = new Epic(newEpic, Status.IN_PROGRESS);
+        Epic notNewStatusEpic = new Epic("Эпик", "Описание");
+        notNewStatusEpic.setStatus(Status.IN_PROGRESS);
 
         manager.addEpic(new Epic("Эпик", "Для подзадачи"));
 
@@ -663,6 +665,112 @@ abstract class TaskManagerTest<T extends TaskManager> {
                 "Статус эпика DONE должен смениться на NEW при удалении всех задач.");
     }
 
+    //ТЕСТЫ getPrioritizedTasks.
+
+    @Test
+    public void getPrioritizedTasksWorksCorrectly() {
+        createSixTaskListForTimeTests(manager);
+
+        List<Task> checkList = new ArrayList<>();
+        checkList.add(subTask2);
+        checkList.add(subTask3);
+        checkList.add(subTask1);
+        checkList.add(task1);
+
+        List<Task> testList = new ArrayList<>(manager.getPrioritizedTasks());
+
+        checkTasksUnchangedCustom(checkList, testList);
+
+        task1 = new Task(1, "ОБНОВЛЕННАЯ ЗАДАЧА", "ОПИСАНИЕ", now.plusYears(1).minusMinutes(15),
+                Duration.ofMinutes(15));
+        subTask1 = new SubTask(4, "ПоДЗАДАЧА ОБНОВЛЕНА", "ОПИСАНИЕ", 2,
+                now.plusMinutes(30), Duration.ofMinutes(120));
+
+        manager.updateTask(task1);
+        manager.updateSubTask(subTask1);
+        checkList.removeLast();
+        checkList.removeLast();
+        checkList.add(subTask1);
+        checkList.add(task1);
+
+        testList = new ArrayList<>(manager.getPrioritizedTasks());
+
+        checkTasksUnchangedCustom(checkList, testList);
+
+        manager.deleteTaskById(1);
+        manager.deleteTaskById(4);
+        checkList.removeLast();
+        checkList.removeLast();
+
+        testList = new ArrayList<>(manager.getPrioritizedTasks());
+
+        checkTasksUnchangedCustom(checkList, testList);
+
+        manager.deleteAllTasks();
+
+        assertTrue(manager.getPrioritizedTasks().isEmpty(),
+                "Список приоритетных задач должен быть пуст после очистки менеджера.");
+    }
+
+    @Test
+    public void setEpicTimeWorksCorrectly() {
+        createSixTaskListForTimeTests(manager);
+
+        assertEquals(now.plusMinutes(10), epic1.getStartTime(),
+                "Начало эпика должно быть равно 00:10.");
+        assertEquals(Duration.ofMinutes(19), epic1.getDuration(),
+                "Длительность эпика должна быть равна 19 минутам.");
+        assertEquals(now.plusMinutes(45), epic1.getEndTime(),
+                "Конец эпика должен быть равен 00:45.");
+
+        subTask1 = new SubTask(4, "ПоДЗАДАЧА ОБНОВЛЕНА", "ОПИСАНИЕ", 2,
+                now.plusMinutes(30), Duration.ofMinutes(120));
+
+        manager.deleteTaskById(1);
+        manager.updateSubTask(subTask1);
+
+        assertEquals(now.plusMinutes(10), epic1.getStartTime(),
+                "Начало эпика должно быть равно 00:10.");
+        assertEquals(Duration.ofMinutes(124), epic1.getDuration(),
+                "Длительность эпика должна быть равна 124 минутам.");
+        assertEquals(now.plusMinutes(150), epic1.getEndTime(),
+                "Конец эпика должен быть равен 02:30.");
+
+        manager.deleteTaskById(4);
+        manager.deleteTaskById(5);
+
+        assertNull(epic1.getStartTime(),
+                "У эпика без задач начало должно быть null.");
+        assertNull(epic1.getDuration(),
+                "У эпика без задач длительность должна быть null.");
+        assertNull(epic1.getEndTime(),
+                "У эпика без задач конец должен быть null.");
+    }
+
+    @Test
+    public void calendarWorksCorrectly() {
+        task1 = new Task("ЗАДАЧА", "ОПИСАНИЕ", now.plusMinutes(15), Duration.ofMinutes(15));
+        Task wrongTask1 = new Task("1", "ВРЕМЯ НАЧАЛА В ЗАНЯТОМ ИНТЕРВАЛЕ", now.plusMinutes(16), Duration.ofMinutes(5));
+        Task wrongTask2 = new Task("2", "ДЛИТЕЛЬНОСТЬ В ЗАНЯТОМ ИНТЕРВАЛЕ", now, Duration.ofMinutes(16));
+        Task wrongTask3 = new Task("3", "НАЧАЛО НА ГРАНИЦЕ НОВОГО ИНТЕРВАЛА", now.plusMinutes(29), Duration.ofMinutes(15));
+        Task wrongTask4 = new Task("4", "ЗА ПРЕДЕЛАМИ КАЛЕНДАРЯ", now.plusYears(1), Duration.ofMinutes(15));
+
+        manager.addTask(task1);
+
+        IllegalArgumentException ex1 = assertThrows(IllegalArgumentException.class, () -> manager.addTask(wrongTask1));
+        assertTrue(ex1.getMessage().contains("interval is occupied"),
+                "Сообщение об ошибке должно содержать слово 'interval is occupied'.");
+        IllegalArgumentException ex2 = assertThrows(IllegalArgumentException.class, () -> manager.addTask(wrongTask2));
+        assertTrue(ex2.getMessage().contains("interval is occupied"),
+                "Сообщение об ошибке должно содержать слово 'interval is occupied'.");
+        IllegalArgumentException ex3 = assertThrows(IllegalArgumentException.class, () -> manager.addTask(wrongTask3));
+        assertTrue(ex3.getMessage().contains("interval is occupied"),
+                "Сообщение об ошибке должно содержать слово 'interval is occupied'.");
+        IllegalArgumentException ex4 = assertThrows(IllegalArgumentException.class, () -> manager.addTask(wrongTask4));
+        assertTrue(ex4.getMessage().contains("calendar range"),
+                "Сообщение об ошибке должно содержать слово 'calendar range'.");
+    }
+
     //ТЕСТЫ остальных методов.
     @Test
     public void getTasksWorksCorrectly() {
@@ -743,15 +851,15 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
     //ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ.
     protected void createSixTaskListForTests(TaskManager manager) {
-        Task newTask = new Task("ЗАДАЧА", "Описание");
+        Task newTask = new Task("ЗАДАЧА", "Описание", now, Duration.ofMinutes(30));
         Epic newEpic1 = new Epic("ЭПИК1", "Описание");
         Epic newEpic2 = new Epic("ЭПИК2", "Описание");
         manager.addTask(newTask);
         manager.addEpic(newEpic1);
         manager.addEpic(newEpic2);
-        SubTask newSubTask1 = new SubTask("ПОДЗАДАЧА1-1", "Описание", 2);
-        SubTask newSubTask2 = new SubTask("ПОДЗАДАЧА1-2", "Описание", 2);
-        SubTask newSubTask3 = new SubTask("ПОДЗАДАЧА2-1", "Описание", 3);
+        SubTask newSubTask1 = new SubTask("ПОДЗАДАЧА1-1", "Описание", 2, now.plusHours(1), Duration.ofMinutes(30));
+        SubTask newSubTask2 = new SubTask("ПОДЗАДАЧА1-2", "Описание", 2, now.plusHours(2), Duration.ofMinutes(30));
+        SubTask newSubTask3 = new SubTask("ПОДЗАДАЧА2-1", "Описание", 3, now.plusHours(3), Duration.ofMinutes(30));
         manager.addSubTask(newSubTask1);
         manager.addSubTask(newSubTask2);
         manager.addSubTask(newSubTask3);
@@ -766,12 +874,37 @@ abstract class TaskManagerTest<T extends TaskManager> {
         checkTaskCountForSixTasks(manager);
     }
 
+    protected void createSixTaskListForTimeTests(TaskManager manager) {
+        task1 = new Task("ПОСЛЕДНЯЯ ЗАДАЧА", "Описание", now.plusMinutes(45), Duration.ofMinutes(60));
+        epic1 = new Epic("ЭПИК1", "Описание");
+        epic2 = new Epic("ЭПИК2", "Описание");
+        subTask1 = new SubTask("ПОДЗАДАЧА1-1", "Описание", 2, now.plusMinutes(30), Duration.ofMinutes(15));
+        subTask2 = new SubTask("ПОДЗАДАЧА1-1", "Описание", 2, now.plusMinutes(10), Duration.ofMinutes(4));
+        subTask3 = new SubTask("ПОДЗАДАЧА1-1", "Описание", 3, now.plusMinutes(20), Duration.ofMinutes(9));
+
+        manager.addTask(task1);
+        manager.addEpic(epic1);
+        manager.addEpic(epic2);
+        manager.addSubTask(subTask1);
+        manager.addSubTask(subTask2);
+        manager.addSubTask(subTask3);
+
+        task1 = manager.getTaskById(1).orElseThrow();
+        epic1 = (Epic) manager.getTaskById(2).orElseThrow();
+        epic2 = (Epic) manager.getTaskById(3).orElseThrow();
+        subTask1 = (SubTask) manager.getTaskById(4).orElseThrow();
+        subTask2 = (SubTask) manager.getTaskById(5).orElseThrow();
+        subTask3 = (SubTask) manager.getTaskById(6).orElseThrow();
+
+        checkTaskCountForSixTasks(manager);
+    }
+
     protected void createThreeTaskListForTests(TaskManager manager) {
-        Task newTask = new Task("ЗАДАЧА", "ОПИСАНИЕ ЗАДАЧИ");
+        Task newTask = new Task("ЗАДАЧА", "ОПИСАНИЕ ЗАДАЧИ", now, Duration.ofMinutes(30));
         Epic newEpic = new Epic("ЭПИК", "ОПИСАНИЕ ЭПИКА");
         manager.addTask(newTask);
         manager.addEpic(newEpic);
-        SubTask newSubTask = new SubTask("ПОДЗАДАЧА", "ОПИСАНИЕ ПОДЗАДАЧИ", 2);
+        SubTask newSubTask = new SubTask("ПОДЗАДАЧА", "ОПИСАНИЕ ПОДЗАДАЧИ", 2, now.plusHours(1), Duration.ofMinutes(30));
         manager.addSubTask(newSubTask);
 
         task1 = manager.getTaskById(1).orElseThrow();
@@ -845,6 +978,12 @@ abstract class TaskManagerTest<T extends TaskManager> {
                     "Описание не совпадает на позиции " + i);
             assertEquals(initialTask.getStatus(), taskToCheck.getStatus(),
                     "Статус не совпадает на позиции " + i);
+            assertEquals(initialTask.getStartTime(), taskToCheck.getStartTime(),
+                    "Начало задачи не совпадает на позиции " + i);
+            assertEquals(initialTask.getDuration(), taskToCheck.getDuration(),
+                    "Длительность задачи не совпадает на позиции " + i);
+            assertEquals(initialTask.getEndTime(), taskToCheck.getEndTime(),
+                    "Конец задачи не совпадает на позиции " + i);
             if (initialTask instanceof Epic initialEpic && taskToCheck instanceof Epic epicToCheck) {
                 assertEquals(initialEpic.getSubTaskIdList(), epicToCheck.getSubTaskIdList(),
                         "Список subTaskIdList эпика не совпадает на позиции " + i);

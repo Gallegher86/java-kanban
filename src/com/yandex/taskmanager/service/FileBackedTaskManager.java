@@ -12,6 +12,8 @@ import com.yandex.taskmanager.exceptions.ManagerSaveException;
 import java.io.IOException;
 import java.io.FileNotFoundException;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -23,7 +25,7 @@ import java.nio.charset.StandardCharsets;
 
 public class FileBackedTaskManager extends InMemoryTaskManager implements TaskManager {
     private final File saveFile;
-    private static final String HEADER = "id,type,name,status,description,epic";
+    private static final String HEADER = "id,type,name,status,description,epic,startTime,duration,endTime";
 
     public FileBackedTaskManager(File saveFile) throws IOException {
         if (saveFile == null) {
@@ -136,11 +138,23 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
             epics.put(epic.getId(), epic);
         } else if (task instanceof SubTask subTask) {
             subTasks.put(subTask.getId(), subTask);
+
+            if (subTask.getEndTime() != null) {
+                prioritizedTasks.add(subTask);
+                markCalendarInterval(subTask);
+            }
+
             Epic epic = epics.get(subTask.getEpicId());
             epic.addSubTaskId(subTask.getId());
             updateEpicStatus(epic.getId());
+            setEpicTime(epic.getId());
         } else {
             tasks.put(task.getId(), task);
+
+            if (task.getEndTime() != null) {
+                prioritizedTasks.add(task);
+                markCalendarInterval(task);
+            }
         }
     }
 
@@ -174,19 +188,24 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
         String name = taskFields[2];
         Status status = Status.valueOf(taskFields[3]);
         String description = taskFields[4];
+        LocalDateTime startTime = !"null".equals(taskFields[6])
+                ? LocalDateTime.parse(taskFields[6], Task.DATE_TIME_FORMATTER) : null;
+        Duration duration = !"null".equals(taskFields[7])
+                ? Duration.ofMinutes(Long.parseLong(taskFields[7])) : null;
 
         return switch (type) {
-            case TASK -> new Task(id, name, description, status);
+            case TASK -> new Task(id, name, description, status, startTime, duration);
             case EPIC -> new Epic(id, name, description);
             case SUBTASK -> {
                 int epicId = Integer.parseInt(taskFields[5]);
-                yield new SubTask(id, name, description, status, epicId);
+                yield new SubTask(id, name, description, status, epicId, startTime, duration);
             }
         };
     }
 
     public static void main(String[] args) {
         File file;
+        LocalDateTime now = LocalDateTime.now();
 
         try {
             file = File.createTempFile("FileBackedTaskManager_", ".txt");
@@ -196,14 +215,14 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
 
         TaskManager manager = Managers.getFileBackedTaskManager(file);
 
-        Task testTask1 = new Task("Task1", "Description task1");
+        Task testTask1 = new Task("Task1", "Description task1", now, Duration.ofMinutes(15));
         Task testTask2 = new Task("Task2", "Description task2");
         Epic testEpic1 = new Epic("Epic1", "Description epic1");
         Epic testEpic2 = new Epic("Epic2", "Description epic2");
 
         SubTask testSubTask1 = new SubTask("SubTask1", "Description subTask1", 3);
-        SubTask testSubTask2 = new SubTask("SubTask2", "Description subTask2", 3);
-        SubTask testSubTask3 = new SubTask("SubTask3", "Description subTask3", 3);
+        SubTask testSubTask2 = new SubTask("SubTask2", "Description subTask2", 3, now.plusMinutes(30), Duration.ofMinutes(10));
+        SubTask testSubTask3 = new SubTask("SubTask3", "Description subTask3", 3, now.plusMinutes(49), Duration.ofMinutes(15));
         SubTask testSubTask4 = new SubTask("SubTask4", "Description subTask4", 4);
 
         manager.addTask(testTask1);
@@ -216,9 +235,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
         manager.addSubTask(testSubTask4);
 
         System.out.println(manager.getAllTasks());
-
-        manager.deleteTaskById(1);
-        manager.deleteTaskById(8);
 
         TaskManager newManager = FileBackedTaskManager.loadFromFile(file);
 
