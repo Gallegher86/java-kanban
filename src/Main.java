@@ -13,6 +13,8 @@ import java.util.Optional;
 
 public class Main {
     public static void main(String[] args) {
+        //Тест
+
         TaskManager manager = Managers.getDefaultTaskManager();
         Scanner scanner = new Scanner(System.in);
 
