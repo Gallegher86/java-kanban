@@ -220,7 +220,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     private boolean isTaskOkToAdd(Task task) {
-        checkTaskNotNull(task);
+        checkTaskDataCorrect(task);
 
         if (task.getId() == 0 && task.getStatus() == Status.NEW) {
             return true;
@@ -231,7 +231,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     private boolean isTaskOkToUpdate(Task task) {
-        checkTaskNotNull(task);
+        checkTaskDataCorrect(task);
 
         if (!isTaskInManager(task.getId())) {
             throw new IllegalArgumentException("Cannot update Task. Task with Id: " + task.getId() +
@@ -245,9 +245,25 @@ public class InMemoryTaskManager implements TaskManager {
         return (tasks.containsKey(id) || epics.containsKey(id) || subTasks.containsKey(id));
     }
 
-    private void checkTaskNotNull(Task task) {
+    private void checkTaskDataCorrect(Task task) {
+        List<String> errors = new ArrayList<>();
+
         if (task == null) {
             throw new NullPointerException("Task provided to Task Manager is null.");
+        }
+
+        if (task.getName() == null) {
+            errors.add("Task provided to Task Manager has null name.");
+        }
+        if (task.getDescription() == null) {
+            errors.add("Task provided to Task Manager has null description.");
+        }
+        if (task.getStatus() == null) {
+            errors.add("Task provided to Task Manager has null status.");
+        }
+
+        if (!errors.isEmpty()) {
+            throw new IllegalArgumentException(String.join("\n", errors));
         }
     }
 
