@@ -33,7 +33,7 @@ public class InMemoryTaskManager implements TaskManager {
     private final HistoryManager historyManager = Managers.getDefaultHistoryManager();
 
     @Override
-    public Task addTask(Task task) {
+    public Task createTask(Task task) {
         if (task instanceof Epic || task instanceof SubTask) {
             throw new IllegalArgumentException("Epics and SubTasks must be added using their own methods.");
         }
@@ -43,7 +43,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public Epic addEpic(Epic epic) {
+    public Epic createEpic(Epic epic) {
         isTaskOkToAdd(epic);
 
         if (!epic.getSubTaskIdList().isEmpty()) {
@@ -54,7 +54,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public SubTask addSubTask(SubTask subTask) {
+    public SubTask createSubTask(SubTask subTask) {
         isTaskOkToAdd(subTask);
 
         Epic epic = epics.get(subTask.getEpicId());

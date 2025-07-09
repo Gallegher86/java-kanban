@@ -75,19 +75,19 @@ abstract class TaskManagerTest<T extends TaskManager> {
     }
 
     @Test
-    public void addTaskMustThrowExceptionIfAddSameTaskTwice() {
+    public void addTaskMustThrowExceptionIfCreateSameTaskTwice() {
         createThreeTaskListForTests(manager);
 
         IllegalArgumentException ex1 = assertThrows(IllegalArgumentException.class,
-                () -> manager.addTask(task1));
+                () -> manager.createTask(task1));
         assertTrue(ex1.getMessage().contains("is not new"),
                 "Сообщение об ошибке Задачи должно содержать слово 'is not new'.");
         IllegalArgumentException ex2 = assertThrows(IllegalArgumentException.class,
-                () -> manager.addEpic(epic1));
+                () -> manager.createEpic(epic1));
         assertTrue(ex2.getMessage().contains("is not new"),
                 "Сообщение об ошибке Эпика должно содержать слово 'is not new'.");
         IllegalArgumentException ex3 = assertThrows(IllegalArgumentException.class,
-                () -> manager.addSubTask(subTask1));
+                () -> manager.createSubTask(subTask1));
         assertTrue(ex3.getMessage().contains("is not new"),
                 "Сообщение об ошибке Подзадачи должно содержать слово 'is not new'.");
 
@@ -95,24 +95,24 @@ abstract class TaskManagerTest<T extends TaskManager> {
     }
 
     @Test
-    public void addTaskMustThrowExceptionIfAddTaskWithStatusNotNew() {
+    public void addTaskMustThrowExceptionIfCreateTaskWithStatusNotNew() {
         Task notNewStatusTask = new Task(0, "Задача", "Описание", Status.IN_PROGRESS);
         SubTask notNewStatusSubTask = new SubTask(0, "Подзадача", "Описание", Status.IN_PROGRESS, 1);
         Epic notNewStatusEpic = new Epic("Эпик", "Описание");
         notNewStatusEpic.setStatus(Status.IN_PROGRESS);
 
-        manager.addEpic(new Epic("Эпик", "Для подзадачи"));
+        manager.createEpic(new Epic("Эпик", "Для подзадачи"));
 
         IllegalArgumentException ex1 = assertThrows(IllegalArgumentException.class,
-                () -> manager.addTask(notNewStatusTask));
+                () -> manager.createTask(notNewStatusTask));
         assertTrue(ex1.getMessage().contains("is not new"),
                 "Сообщение об ошибке должно содержать слово 'is not new'.");
         IllegalArgumentException ex2 = assertThrows(IllegalArgumentException.class,
-                () -> manager.addEpic(notNewStatusEpic));
+                () -> manager.createEpic(notNewStatusEpic));
         assertTrue(ex2.getMessage().contains("is not new"),
                 "Сообщение об ошибке должно содержать слово 'is not new'.");
         IllegalArgumentException ex3 = assertThrows(IllegalArgumentException.class,
-                () -> manager.addSubTask(notNewStatusSubTask));
+                () -> manager.createSubTask(notNewStatusSubTask));
         assertTrue(ex3.getMessage().contains("is not new"),
                 "Сообщение об ошибке должно содержать слово 'is not new'.");
 
@@ -120,14 +120,14 @@ abstract class TaskManagerTest<T extends TaskManager> {
     }
 
     @Test
-    public void addTaskMustThrowExceptionIfAddEpicWithExistingSubTaskIdList() {
+    public void addTaskMustThrowExceptionIfCreateEpicWithExistingSubTaskIdList() {
         Epic newEpic = new Epic("Эпик", "Описание");
         List<Integer> subTaskIds = new ArrayList<>();
         subTaskIds.add(999);
         Epic notEmptyEpic = new Epic(newEpic, subTaskIds);
 
         IllegalArgumentException ex1 = assertThrows(IllegalArgumentException.class,
-                () -> manager.addEpic(notEmptyEpic));
+                () -> manager.createEpic(notEmptyEpic));
         assertTrue(ex1.getMessage().contains("Cannot add Epic with non-empty subTaskIdList"),
                 "Сообщение об ошибке должно содержать слово 'Cannot add Epic with non-empty subTaskIdList'.");
 
@@ -135,23 +135,23 @@ abstract class TaskManagerTest<T extends TaskManager> {
     }
 
     @Test
-    public void addTaskMustThrowExceptionIfAddTaskWithExistingId() {
+    public void addTaskMustThrowExceptionIfCreateTaskWithExistingId() {
         Task notNewIdTask = new Task(999, "Задача", "Описание");
         Epic notNewIdEpic = new Epic(1000, "Эпик", "Описание");
         SubTask notNewIdSubTask = new SubTask(1001, "Подзадача", "Описание", Status.DONE, 1);
 
-        manager.addEpic(new Epic("Эпик", "Для подзадачи"));
+        manager.createEpic(new Epic("Эпик", "Для подзадачи"));
 
         IllegalArgumentException ex1 = assertThrows(IllegalArgumentException.class,
-                () -> manager.addTask(notNewIdTask));
+                () -> manager.createTask(notNewIdTask));
         assertTrue(ex1.getMessage().contains("is not new"),
                 "Сообщение об ошибке должно содержать слово 'is not new'.");
         IllegalArgumentException ex2 = assertThrows(IllegalArgumentException.class,
-                () -> manager.addEpic(notNewIdEpic));
+                () -> manager.createEpic(notNewIdEpic));
         assertTrue(ex2.getMessage().contains("is not new"),
                 "Сообщение об ошибке должно содержать слово 'is not new'.");
         IllegalArgumentException ex3 = assertThrows(IllegalArgumentException.class,
-                () -> manager.addSubTask(notNewIdSubTask));
+                () -> manager.createSubTask(notNewIdSubTask));
         assertTrue(ex3.getMessage().contains("is not new"),
                 "Сообщение об ошибке должно содержать слово 'is not new'.");
 
@@ -159,17 +159,17 @@ abstract class TaskManagerTest<T extends TaskManager> {
     }
 
     @Test
-    public void addTaskMustThrowExceptionIfAddNullTask() {
+    public void addTaskMustThrowExceptionIfCreateNullTask() {
         NullPointerException ex1 = assertThrows(NullPointerException.class,
-                () -> manager.addTask(null));
+                () -> manager.createTask(null));
         assertTrue(ex1.getMessage().contains("null"),
                 "Сообщение об ошибке должно содержать слово 'null'.");
         NullPointerException ex2 = assertThrows(NullPointerException.class,
-                () -> manager.addEpic(null));
+                () -> manager.createEpic(null));
         assertTrue(ex2.getMessage().contains("null"),
                 "Сообщение об ошибке должно содержать слово 'null'.");
         NullPointerException ex3 = assertThrows(NullPointerException.class,
-                () -> manager.addSubTask(null));
+                () -> manager.createSubTask(null));
         assertTrue(ex3.getMessage().contains("null"),
                 "Сообщение об ошибке должно содержать слово 'null'.");
 
@@ -177,11 +177,11 @@ abstract class TaskManagerTest<T extends TaskManager> {
     }
 
     @Test
-    public void addTaskMustThrowExceptionIfAddSubTaskWithInvalidEpicId() {
+    public void addTaskMustThrowExceptionIfCreateSubTaskWithInvalidEpicId() {
         SubTask invalidEpicIdSubTask = new SubTask("Подзадача", "Описание", 999);
 
         IllegalArgumentException ex1 = assertThrows(IllegalArgumentException.class,
-                () -> manager.addSubTask(invalidEpicIdSubTask));
+                () -> manager.createSubTask(invalidEpicIdSubTask));
         assertTrue(ex1.getMessage().contains("Epic with ID"),
                 "Сообщение об ошибке должно содержать слово 'Epic with ID'.");
 
@@ -189,16 +189,16 @@ abstract class TaskManagerTest<T extends TaskManager> {
     }
 
     @Test
-    public void addTaskMustThrowExceptionIfAddSubTaskAsItsOwnEpic() {
+    public void addTaskMustThrowExceptionIfCreateSubTaskAsItsOwnEpic() {
         Epic epic1 = new Epic("Эпик", "Описание");
-        manager.addEpic(epic1);
+        manager.createEpic(epic1);
         SubTask subTask1 = new SubTask("Подзадача1", "Описание", 1);
-        manager.addSubTask(subTask1);
+        manager.createSubTask(subTask1);
 
         SubTask subTaskAsOwnEpic = new SubTask("Подзадача1", "id подзадачи, вместо epicId", 2);
 
         IllegalArgumentException ex1 = assertThrows(IllegalArgumentException.class,
-                () -> manager.addSubTask(subTaskAsOwnEpic));
+                () -> manager.createSubTask(subTaskAsOwnEpic));
         assertTrue(ex1.getMessage().contains("Epic with ID"),
                 "Сообщение об ошибке должно содержать слово 'Epic with ID'.");
 
@@ -206,16 +206,16 @@ abstract class TaskManagerTest<T extends TaskManager> {
     }
 
     @Test
-    public void MustThrowExceptionIfUsingAddTaskMethodToAddEpicOrSubTask() {
+    public void MustThrowExceptionIfUsingAddTaskMethodToCreateEpicOrSubTask() {
         Epic epic1 = new Epic("Эпик", "Описание");
         SubTask subTask1 = new SubTask("Подзадача1", "Описание", epic1.getId());
 
         IllegalArgumentException ex1 = assertThrows(IllegalArgumentException.class,
-                () -> manager.addTask(epic1));
+                () -> manager.createTask(epic1));
         assertTrue(ex1.getMessage().contains("using their own methods"),
                 "Сообщение об ошибке должно содержать слово 'using their own methods'.");
         IllegalArgumentException ex2 = assertThrows(IllegalArgumentException.class,
-                () -> manager.addTask(subTask1));
+                () -> manager.createTask(subTask1));
         assertTrue(ex2.getMessage().contains("using their own methods"),
                 "Сообщение об ошибке должно содержать слово 'using their own methods'.");
 
@@ -435,13 +435,13 @@ abstract class TaskManagerTest<T extends TaskManager> {
         fourSubTaskIdList.add(5);
 
         Epic epic1 = new Epic("ЭПИК", "описание");
-        manager.addEpic(epic1);
+        manager.createEpic(epic1);
         SubTask subTask1 = new SubTask("ПОДЗАДАЧА", "описание", 1);
         SubTask subTask2 = new SubTask("ПОДЗАДАЧА", "описание", 1);
         SubTask subTask3 = new SubTask("ПОДЗАДАЧА", "описание", 1);
-        manager.addSubTask(subTask1);
-        manager.addSubTask(subTask2);
-        manager.addSubTask(subTask3);
+        manager.createSubTask(subTask1);
+        manager.createSubTask(subTask2);
+        manager.createSubTask(subTask3);
 
         Epic epicInManager = (Epic) manager.findAnyTaskById(1).orElseThrow();
         assertEquals(threeSubTaskIdList, epicInManager.getSubTaskIdList(),
@@ -467,7 +467,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
         SubTask subTask4 = new SubTask("ПОДЗАДАЧА", "описание", 1);
 
-        manager.addSubTask(subTask4);
+        manager.createSubTask(subTask4);
         checkTaskCountCustom(manager, 0, 1, 4, 5);
 
         epicInManager = (Epic) manager.findAnyTaskById(1).orElseThrow();
@@ -479,13 +479,13 @@ abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     public void updateTaskMustThrowExceptionIfUpdatingEpicHasSubTaskIdList() {
         Epic epic1 = new Epic("ЭПИК", "описание");
-        manager.addEpic(epic1);
+        manager.createEpic(epic1);
         SubTask subTask1 = new SubTask("ПОДЗАДАЧА", "описание", 1);
         SubTask subTask2 = new SubTask("ПОДЗАДАЧА", "описание", 1);
         SubTask subTask3 = new SubTask("ПОДЗАДАЧА", "описание", 1);
-        manager.addSubTask(subTask1);
-        manager.addSubTask(subTask2);
-        manager.addSubTask(subTask3);
+        manager.createSubTask(subTask1);
+        manager.createSubTask(subTask2);
+        manager.createSubTask(subTask3);
 
         final List<Task> tasksToCheck = manager.getAllTasks();
 
@@ -525,9 +525,9 @@ abstract class TaskManagerTest<T extends TaskManager> {
     public void updateTaskMustThrowExceptionIfSubTaskNotInThisEpicList() {
         createThreeTaskListForTests(manager);
         Epic epic2 = new Epic("ЭПИК2", "описание");
-        manager.addEpic(epic2);
+        manager.createEpic(epic2);
         SubTask subTask2 = new SubTask("ПОДЗАДАЧА 2 ЭПИКА", "описание", 4);
-        manager.addSubTask(subTask2);
+        manager.createSubTask(subTask2);
 
         final List<Task> tasksToCheck = manager.getAllTasks();
 
@@ -609,7 +609,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     public void updateEpicStatusWorksCorrectly() {
         Epic epic1 = new Epic("ЭПИК", "описание");
-        manager.addEpic(epic1);
+        manager.createEpic(epic1);
 
 
         Epic epicInManager = (Epic) manager.findAnyTaskById(1).orElseThrow();
@@ -619,8 +619,8 @@ abstract class TaskManagerTest<T extends TaskManager> {
         SubTask subTask1 = new SubTask("ПОДЗАДАЧА1", "описание", 1);
         SubTask subTask2 = new SubTask("ПОДЗАДАЧА2", "описание", 1);
 
-        manager.addSubTask(subTask1);
-        manager.addSubTask(subTask2);
+        manager.createSubTask(subTask1);
+        manager.createSubTask(subTask2);
         epicInManager = (Epic) manager.findAnyTaskById(1).orElseThrow();
         assertEquals(Status.NEW, epicInManager.getStatus(),
                 "Статус эпика после добавления новых подзадач должен быть NEW.");
@@ -649,7 +649,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
         SubTask newSubTask = new SubTask("ПОДЗАДАЧА3", "описание", 1);
 
-        manager.addSubTask(newSubTask);
+        manager.createSubTask(newSubTask);
         epicInManager = (Epic) manager.findAnyTaskById(1).orElseThrow();
         assertEquals(Status.IN_PROGRESS, epicInManager.getStatus(),
                 "Статус эпика DONE должен смениться на IN_PROGRESS при добавлении NEW задачи.");
@@ -756,18 +756,18 @@ abstract class TaskManagerTest<T extends TaskManager> {
         Task wrongTask3 = new Task("3", "НАЧАЛО НА ГРАНИЦЕ НОВОГО ИНТЕРВАЛА", now.plusMinutes(29), Duration.ofMinutes(15));
         Task wrongTask4 = new Task("4", "ЗА ПРЕДЕЛАМИ КАЛЕНДАРЯ", now.plusYears(1), Duration.ofMinutes(15));
 
-        manager.addTask(task1);
+        manager.createTask(task1);
 
-        IllegalArgumentException ex1 = assertThrows(IllegalArgumentException.class, () -> manager.addTask(wrongTask1));
+        IllegalArgumentException ex1 = assertThrows(IllegalArgumentException.class, () -> manager.createTask(wrongTask1));
         assertTrue(ex1.getMessage().contains("interval is occupied"),
                 "Сообщение об ошибке должно содержать слово 'interval is occupied'.");
-        IllegalArgumentException ex2 = assertThrows(IllegalArgumentException.class, () -> manager.addTask(wrongTask2));
+        IllegalArgumentException ex2 = assertThrows(IllegalArgumentException.class, () -> manager.createTask(wrongTask2));
         assertTrue(ex2.getMessage().contains("interval is occupied"),
                 "Сообщение об ошибке должно содержать слово 'interval is occupied'.");
-        IllegalArgumentException ex3 = assertThrows(IllegalArgumentException.class, () -> manager.addTask(wrongTask3));
+        IllegalArgumentException ex3 = assertThrows(IllegalArgumentException.class, () -> manager.createTask(wrongTask3));
         assertTrue(ex3.getMessage().contains("interval is occupied"),
                 "Сообщение об ошибке должно содержать слово 'interval is occupied'.");
-        IllegalArgumentException ex4 = assertThrows(IllegalArgumentException.class, () -> manager.addTask(wrongTask4));
+        IllegalArgumentException ex4 = assertThrows(IllegalArgumentException.class, () -> manager.createTask(wrongTask4));
         assertTrue(ex4.getMessage().contains("calendar range"),
                 "Сообщение об ошибке должно содержать слово 'calendar range'.");
     }
@@ -809,7 +809,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     public void findAnyTaskByIdMustReturnEmptyOptionalIfIdIsWrong() {
         Task task1 = new Task("Задача", "Описание");
-        manager.addTask(task1);
+        manager.createTask(task1);
 
         Optional<Task> wrongTask = manager.findAnyTaskById(-999);
         assertFalse(wrongTask.isPresent(),
@@ -841,7 +841,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
         assertTrue(wrongIdSubTasks.isEmpty(), "При вводе неверного id должен возвращаться пустой список.");
 
         Epic emptyEpic = new Epic("Пустой эпик", "Описание");
-        manager.addEpic(emptyEpic);
+        manager.createEpic(emptyEpic);
 
         final List<SubTask> emptyEpicSubTasks = manager.getEpicSubTasks(emptyEpic.getId());
         assertNotNull(emptyEpicSubTasks,
@@ -855,15 +855,15 @@ abstract class TaskManagerTest<T extends TaskManager> {
         Task newTask = new Task("ЗАДАЧА", "Описание", now, Duration.ofMinutes(30));
         Epic newEpic1 = new Epic("ЭПИК1", "Описание");
         Epic newEpic2 = new Epic("ЭПИК2", "Описание");
-        manager.addTask(newTask);
-        manager.addEpic(newEpic1);
-        manager.addEpic(newEpic2);
+        manager.createTask(newTask);
+        manager.createEpic(newEpic1);
+        manager.createEpic(newEpic2);
         SubTask newSubTask1 = new SubTask("ПОДЗАДАЧА1-1", "Описание", 2, now.plusHours(1), Duration.ofMinutes(30));
         SubTask newSubTask2 = new SubTask("ПОДЗАДАЧА1-2", "Описание", 2, now.plusHours(2), Duration.ofMinutes(30));
         SubTask newSubTask3 = new SubTask("ПОДЗАДАЧА2-1", "Описание", 3, now.plusHours(3), Duration.ofMinutes(30));
-        manager.addSubTask(newSubTask1);
-        manager.addSubTask(newSubTask2);
-        manager.addSubTask(newSubTask3);
+        manager.createSubTask(newSubTask1);
+        manager.createSubTask(newSubTask2);
+        manager.createSubTask(newSubTask3);
 
         task1 = manager.findAnyTaskById(1).orElseThrow();
         epic1 = (Epic) manager.findAnyTaskById(2).orElseThrow();
@@ -883,12 +883,12 @@ abstract class TaskManagerTest<T extends TaskManager> {
         subTask2 = new SubTask("ПОДЗАДАЧА1-1", "Описание", 2, now.plusMinutes(10), Duration.ofMinutes(4));
         subTask3 = new SubTask("ПОДЗАДАЧА1-1", "Описание", 3, now.plusMinutes(20), Duration.ofMinutes(9));
 
-        manager.addTask(task1);
-        manager.addEpic(epic1);
-        manager.addEpic(epic2);
-        manager.addSubTask(subTask1);
-        manager.addSubTask(subTask2);
-        manager.addSubTask(subTask3);
+        manager.createTask(task1);
+        manager.createEpic(epic1);
+        manager.createEpic(epic2);
+        manager.createSubTask(subTask1);
+        manager.createSubTask(subTask2);
+        manager.createSubTask(subTask3);
 
         task1 = manager.findAnyTaskById(1).orElseThrow();
         epic1 = (Epic) manager.findAnyTaskById(2).orElseThrow();
@@ -903,10 +903,10 @@ abstract class TaskManagerTest<T extends TaskManager> {
     protected void createThreeTaskListForTests(TaskManager manager) {
         Task newTask = new Task("ЗАДАЧА", "ОПИСАНИЕ ЗАДАЧИ", now, Duration.ofMinutes(30));
         Epic newEpic = new Epic("ЭПИК", "ОПИСАНИЕ ЭПИКА");
-        manager.addTask(newTask);
-        manager.addEpic(newEpic);
+        manager.createTask(newTask);
+        manager.createEpic(newEpic);
         SubTask newSubTask = new SubTask("ПОДЗАДАЧА", "ОПИСАНИЕ ПОДЗАДАЧИ", 2, now.plusHours(1), Duration.ofMinutes(30));
-        manager.addSubTask(newSubTask);
+        manager.createSubTask(newSubTask);
 
         task1 = manager.findAnyTaskById(1).orElseThrow();
         epic1 = (Epic) manager.findAnyTaskById(2).orElseThrow();
