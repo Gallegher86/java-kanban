@@ -9,11 +9,11 @@ import java.util.Optional;
 import java.util.TreeSet;
 
 public interface TaskManager {
-    void addTask(Task task);
+    Task addTask(Task task);
 
-    void addEpic(Epic epic);
+    Epic addEpic(Epic epic);
 
-    void addSubTask(SubTask subTask);
+    SubTask addSubTask(SubTask subTask);
 
     List<Task> getAllTasks();
 

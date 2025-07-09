@@ -32,40 +32,36 @@ public class InMemoryTaskManager implements TaskManager {
     private final HistoryManager historyManager = Managers.getDefaultHistoryManager();
 
     @Override
-    public void addTask(Task task) {
+    public Task addTask(Task task) {
         if (task instanceof Epic || task instanceof SubTask) {
             throw new IllegalArgumentException("Epics and SubTasks must be added using their own methods.");
         }
 
-        if (isTaskOkToAdd(task)) {
-            addToTasks(task);
-        }
+        isTaskOkToAdd(task);
+        return addToTasks(task);
     }
 
     @Override
-    public void addEpic(Epic epic) {
-        if (isTaskOkToAdd(epic)) {
-            if (!epic.getSubTaskIdList().isEmpty()) {
-                throw new IllegalArgumentException("Cannot add Epic with non-empty subTaskIdList. Only new Epics " +
-                        "are allowed.");
-            } else {
-                addToEpics(epic);
-            }
+    public Epic addEpic(Epic epic) {
+        isTaskOkToAdd(epic);
+
+        if (!epic.getSubTaskIdList().isEmpty()) {
+            throw new IllegalArgumentException("Cannot add Epic with non-empty subTaskIdList. Only new Epics " +
+                    "are allowed.");
         }
+        return addToEpics(epic);
     }
 
     @Override
-    public void addSubTask(SubTask subTask) {
-        if (isTaskOkToAdd(subTask)) {
-            Epic epic = epics.get(subTask.getEpicId());
+    public SubTask addSubTask(SubTask subTask) {
+        isTaskOkToAdd(subTask);
 
-            if (epic == null) {
-                throw new IllegalArgumentException("Cannot add SubTask. Epic with ID: " + subTask.getEpicId()
-                        + " not found in TaskManager.");
-            } else {
-                addToSubTasks(subTask);
-            }
+        Epic epic = epics.get(subTask.getEpicId());
+        if (epic == null) {
+            throw new IllegalArgumentException("Cannot add SubTask. Epic with ID: " + subTask.getEpicId()
+                    + " not found in TaskManager.");
         }
+        return addToSubTasks(subTask);
     }
 
     @Override
@@ -255,7 +251,7 @@ public class InMemoryTaskManager implements TaskManager {
         }
     }
 
-    private void addToTasks(Task task) {
+    private Task addToTasks(Task task) {
         if (task.getEndTime() != null && !isCalendarIntervalFree(task)) {
             throw new IllegalArgumentException("Cannot add Task - task interval is occupied.");
         }
@@ -264,16 +260,18 @@ public class InMemoryTaskManager implements TaskManager {
         Task newTask = new Task(idCounter, task.getName(), task.getDescription(), task.getStartTime(), task.getDuration());
         tasks.put(newTask.getId(), newTask);
         addToPrioritizedTasks(newTask);
+        return newTask;
     }
 
-    private void addToEpics(Epic epic) {
+    private Epic addToEpics(Epic epic) {
         idCounter++;
         Epic newEpic = new Epic(idCounter, epic.getName(), epic.getDescription());
         epics.put(newEpic.getId(), newEpic);
         setEpicTime(newEpic.getId());
+        return newEpic;
     }
 
-    private void addToSubTasks(SubTask subTask) {
+    private SubTask addToSubTasks(SubTask subTask) {
         if (subTask.getEndTime() != null && !isCalendarIntervalFree(subTask)) {
             throw new IllegalArgumentException("Cannot add SubTask - SubTask interval is occupied.");
         }
@@ -288,6 +286,8 @@ public class InMemoryTaskManager implements TaskManager {
         epic.addSubTaskId(newSubTask.getId());
         updateEpicStatus(epic.getId());
         setEpicTime(epic.getId());
+
+        return newSubTask;
     }
 
     private void deleteEpicById(int id) {

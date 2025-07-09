@@ -80,15 +80,15 @@ abstract class TaskManagerTest<T extends TaskManager> {
         IllegalArgumentException ex1 = assertThrows(IllegalArgumentException.class,
                 () -> manager.addTask(task1));
         assertTrue(ex1.getMessage().contains("is not new"),
-                "Сообщение об ошибке должно содержать слово 'is not new'.");
+                "Сообщение об ошибке Задачи должно содержать слово 'is not new'.");
         IllegalArgumentException ex2 = assertThrows(IllegalArgumentException.class,
                 () -> manager.addEpic(epic1));
         assertTrue(ex2.getMessage().contains("is not new"),
-                "Сообщение об ошибке должно содержать слово 'is not new'.");
+                "Сообщение об ошибке Эпика должно содержать слово 'is not new'.");
         IllegalArgumentException ex3 = assertThrows(IllegalArgumentException.class,
                 () -> manager.addSubTask(subTask1));
         assertTrue(ex3.getMessage().contains("is not new"),
-                "Сообщение об ошибке должно содержать слово 'is not new'.");
+                "Сообщение об ошибке Подзадачи должно содержать слово 'is not new'.");
 
         checkTaskCountForThreeTasks(manager);
     }
