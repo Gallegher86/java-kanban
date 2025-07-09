@@ -1,5 +1,6 @@
 package com.yandex.taskmanager.service;
 
+import com.yandex.taskmanager.exceptions.NotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -226,7 +227,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
     public void deleteEpicByIdMustRemoveItsSubTasks() {
         createSixTaskListForTests(manager);
 
-        manager.deleteTaskById(epic1.getId());
+        manager.deleteAnyTaskById(epic1.getId());
 
         checkTaskCountCustom(manager, 1, 1, 1, 6);
 
@@ -252,7 +253,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
         assertTrue(epic1.getSubTaskIdList().contains(subTask1.getId()),
                 "id подзадачи должна быть в списке эпика.");
 
-        manager.deleteTaskById(subTask1.getId());
+        manager.deleteAnyTaskById(subTask1.getId());
 
         checkTaskCountCustom(manager, 1, 2, 2, 6);
 
@@ -267,32 +268,32 @@ abstract class TaskManagerTest<T extends TaskManager> {
     }
 
     @Test
-    public void deleteTaskByIdMustRemoveItFromTaskList() {
+    public void deleteTaskByIdMustRemoveItFromAnyTaskList() {
         createSixTaskListForTests(manager);
 
-        manager.deleteTaskById(task1.getId());
+        manager.deleteAnyTaskById(task1.getId());
 
         checkTaskCountCustom(manager, 0, 2, 3, 6);
     }
 
     @Test
-    public void deleteTaskByIdMustThrowExceptionIfIdInvalid() {
+    public void deleteAnyTaskByIdMustThrowExceptionIfIdInvalid() {
         createSixTaskListForTests(manager);
 
-        IllegalArgumentException ex1 = assertThrows(IllegalArgumentException.class,
-                () -> manager.deleteTaskById(-999));
+        NotFoundException ex1 = assertThrows(NotFoundException.class,
+                () -> manager.deleteAnyTaskById(-999));
         assertTrue(ex1.getMessage().contains("not found in TaskManager"),
                 "Сообщение об ошибке должно содержать слово 'not found in TaskManager'.");
         checkTaskCountForSixTasks(manager);
 
-        IllegalArgumentException ex2 = assertThrows(IllegalArgumentException.class,
-                () -> manager.deleteTaskById(0));
+        NotFoundException ex2 = assertThrows(NotFoundException.class,
+                () -> manager.deleteAnyTaskById(0));
         assertTrue(ex2.getMessage().contains("not found in TaskManager"),
                 "Сообщение об ошибке должно содержать слово 'not found in TaskManager'.");
         checkTaskCountForSixTasks(manager);
 
-        IllegalArgumentException ex3 = assertThrows(IllegalArgumentException.class,
-                () -> manager.deleteTaskById(999));
+        NotFoundException ex3 = assertThrows(NotFoundException.class,
+                () -> manager.deleteAnyTaskById(999));
         assertTrue(ex3.getMessage().contains("not found in TaskManager"),
                 "Сообщение об ошибке должно содержать слово 'not found in TaskManager'.");
         checkTaskCountForSixTasks(manager);
@@ -584,22 +585,22 @@ abstract class TaskManagerTest<T extends TaskManager> {
         manager.findAnyTaskById(subTask2.getId()).orElseThrow();
         manager.findAnyTaskById(subTask3.getId()).orElseThrow();
 
-        manager.deleteTaskById(task1.getId());
+        manager.deleteAnyTaskById(task1.getId());
         List<Task> history = manager.getHistory();
         assertFalse(history.contains(task1), "Задача должна быть удалена из истории.");
 
-        manager.deleteTaskById(subTask3.getId());
+        manager.deleteAnyTaskById(subTask3.getId());
         history = manager.getHistory();
         assertFalse(history.contains(subTask3), "Подзадача должна быть удалена из HistoryManager.");
         assertTrue(history.contains(epic2), "Эпик подзадачи не должен быть удален из HistoryManager.");
 
-        manager.deleteTaskById(epic1.getId());
+        manager.deleteAnyTaskById(epic1.getId());
         history = manager.getHistory();
         assertFalse(history.contains(epic1), "Эпик должен быть удален из HistoryManager.");
         assertFalse(history.contains(subTask1), "Подзадача эпика должна быть удалена из HistoryManager.");
         assertFalse(history.contains(subTask2), "Подзадача эпика должна быть удалена из HistoryManager.");
 
-        manager.deleteTaskById(epic2.getId());
+        manager.deleteAnyTaskById(epic2.getId());
         history = manager.getHistory();
         assertTrue(history.isEmpty(), "Все задачи должны быть удалены из HistoryManager.");
     }
@@ -653,13 +654,13 @@ abstract class TaskManagerTest<T extends TaskManager> {
         assertEquals(Status.IN_PROGRESS, epicInManager.getStatus(),
                 "Статус эпика DONE должен смениться на IN_PROGRESS при добавлении NEW задачи.");
 
-        manager.deleteTaskById(4);
+        manager.deleteAnyTaskById(4);
         epicInManager = (Epic) manager.findAnyTaskById(1).orElseThrow();
         assertEquals(Status.DONE, epicInManager.getStatus(),
                 "Статус эпика IN_PROGRESS должен смениться на DONE при удалении NEW задачи.");
 
-        manager.deleteTaskById(2);
-        manager.deleteTaskById(3);
+        manager.deleteAnyTaskById(2);
+        manager.deleteAnyTaskById(3);
         epicInManager = (Epic) manager.findAnyTaskById(1).orElseThrow();
         assertEquals(Status.NEW, epicInManager.getStatus(),
                 "Статус эпика DONE должен смениться на NEW при удалении всех задач.");
@@ -697,8 +698,8 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
         checkTasksUnchangedCustom(checkList, testList);
 
-        manager.deleteTaskById(1);
-        manager.deleteTaskById(4);
+        manager.deleteAnyTaskById(1);
+        manager.deleteAnyTaskById(4);
         checkList.removeLast();
         checkList.removeLast();
 
@@ -726,7 +727,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
         subTask1 = new SubTask(4, "ПоДЗАДАЧА ОБНОВЛЕНА", "ОПИСАНИЕ", 2,
                 now.plusMinutes(30), Duration.ofMinutes(120));
 
-        manager.deleteTaskById(1);
+        manager.deleteAnyTaskById(1);
         manager.updateSubTask(subTask1);
 
         assertEquals(now.plusMinutes(10), epic1.getStartTime(),
@@ -736,8 +737,8 @@ abstract class TaskManagerTest<T extends TaskManager> {
         assertEquals(now.plusMinutes(150), epic1.getEndTime(),
                 "Конец эпика должен быть равен 02:30.");
 
-        manager.deleteTaskById(4);
-        manager.deleteTaskById(5);
+        manager.deleteAnyTaskById(4);
+        manager.deleteAnyTaskById(5);
 
         assertNull(epic1.getStartTime(),
                 "У эпика без задач начало должно быть null.");

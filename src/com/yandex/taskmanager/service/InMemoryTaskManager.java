@@ -184,19 +184,63 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void deleteTaskById(int id) {
+    public void deleteAnyTaskById(int id) {
         if (tasks.containsKey(id)) {
-            removeFromPrioritizedTasks(tasks.get(id));
-            historyManager.remove(id);
-            tasks.remove(id);
+            deleteTask(id);
         } else if (epics.containsKey(id)) {
-            deleteEpicById(id);
+            deleteEpic(id);
         } else if (subTasks.containsKey(id)) {
-            removeFromPrioritizedTasks(subTasks.get(id));
-            deleteSubTaskById(id);
+            deleteSubTask(id);
         } else {
-            throw new IllegalArgumentException("Task with Id: " + id + " not found in TaskManager.");
+            throw new NotFoundException("Task with Id: " + id + " not found in TaskManager.");
         }
+    }
+
+    @Override
+    public void deleteTask(int id) {
+        Task task = tasks.get(id);
+
+        if (task == null) {
+            throw new NotFoundException("Task with Id: " + id + " not found in TaskManager.");
+        }
+
+        removeFromPrioritizedTasks(tasks.get(id));
+        historyManager.remove(id);
+        tasks.remove(id);
+    }
+
+    @Override
+    public void deleteEpic(int id) {
+        Epic epic = epics.get(id);
+
+        if (epic == null) {
+            throw new NotFoundException("Epic with Id: " + id + " not found in TaskManager.");
+        }
+
+        epic.getSubTaskIdList().forEach(subTaskId -> {
+            subTasks.remove(subTaskId);
+            historyManager.remove(subTaskId);
+        });
+        historyManager.remove(id);
+        epics.remove(id);
+    }
+
+    @Override
+    public void deleteSubTask(int id) {
+        SubTask subTask = subTasks.get(id);
+
+        if (subTask == null) {
+            throw new NotFoundException("Subtask with Id: " + id + " not found in TaskManager.");
+        }
+
+        removeFromPrioritizedTasks(subTasks.get(id));
+
+        Epic epic = epics.get(subTask.getEpicId());
+        epic.removeSubTaskId(subTask.getId());
+        updateEpicStatus(epic.getId());
+        setEpicTime(epic.getId());
+        historyManager.remove(id);
+        subTasks.remove(id);
     }
 
     @Override
@@ -338,36 +382,6 @@ public class InMemoryTaskManager implements TaskManager {
         setEpicTime(epic.getId());
 
         return newSubTask;
-    }
-
-    private void deleteEpicById(int id) {
-        Epic epic = epics.get(id);
-
-        if (epic == null) {
-            return;
-        }
-
-        epic.getSubTaskIdList().forEach(subTaskId -> {
-            subTasks.remove(subTaskId);
-            historyManager.remove(subTaskId);
-        });
-        historyManager.remove(id);
-        epics.remove(id);
-    }
-
-    private void deleteSubTaskById(int id) {
-        SubTask subTask = subTasks.get(id);
-
-        if (subTask == null) {
-            return;
-        }
-
-        Epic epic = epics.get(subTask.getEpicId());
-        epic.removeSubTaskId(subTask.getId());
-        updateEpicStatus(epic.getId());
-        setEpicTime(epic.getId());
-        historyManager.remove(id);
-        subTasks.remove(id);
     }
 
     protected void updateEpicStatus(int id) {

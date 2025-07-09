@@ -41,7 +41,13 @@ public interface TaskManager {
 
     List<SubTask> getEpicSubTasks(int id);
 
-    void deleteTaskById(int id);
+    void deleteAnyTaskById(int id);
+
+    void deleteTask(int id);
+
+    void deleteEpic(int id);
+
+    void deleteSubTask(int id);
 
     void updateTask(Task newTask);
 
