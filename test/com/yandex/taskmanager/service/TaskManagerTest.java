@@ -42,9 +42,9 @@ abstract class TaskManagerTest<T extends TaskManager> {
     public void addAndRetrieveTasksWorksCorrectly() {
         createSixTaskListForTests(manager);
 
-        final Optional<Task> optionalTask = manager.getTaskById(task1.getId());
-        final Optional<Task> optionalEpic = manager.getTaskById(epic1.getId());
-        final Optional<Task> optionalSubTask = manager.getTaskById(subTask1.getId());
+        final Optional<Task> optionalTask = manager.findAnyTaskById(task1.getId());
+        final Optional<Task> optionalEpic = manager.findAnyTaskById(epic1.getId());
+        final Optional<Task> optionalSubTask = manager.findAnyTaskById(subTask1.getId());
 
         assertTrue(optionalTask.isPresent(), "Задача не находиться по id.");
         assertTrue(optionalEpic.isPresent(), "Эпик не находиться по id.");
@@ -256,7 +256,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
         checkTaskCountCustom(manager, 1, 2, 2, 6);
 
-        Epic epicInManager = (Epic) manager.getTaskById(epic1.getId()).orElseThrow();
+        Epic epicInManager = (Epic) manager.findAnyTaskById(epic1.getId()).orElseThrow();
 
         assertFalse(manager.getAllTasks().contains(subTask1),
                 "Подзадача должна быть удален из списка задач.");
@@ -302,12 +302,12 @@ abstract class TaskManagerTest<T extends TaskManager> {
     public void deleteAllTasksMustClearAllListsAndResetTaskCount() {
         createSixTaskListForTests(manager);
 
-        manager.getTaskById(task1.getId());
-        manager.getTaskById(epic1.getId());
-        manager.getTaskById(epic2.getId());
-        manager.getTaskById(subTask1.getId());
-        manager.getTaskById(subTask2.getId());
-        manager.getTaskById(subTask3.getId());
+        manager.findAnyTaskById(task1.getId());
+        manager.findAnyTaskById(epic1.getId());
+        manager.findAnyTaskById(epic2.getId());
+        manager.findAnyTaskById(subTask1.getId());
+        manager.findAnyTaskById(subTask2.getId());
+        manager.findAnyTaskById(subTask3.getId());
 
         assertEquals(6, manager.getHistory().size(),
                 "Количество записей в истории должно быть равно 6.");
@@ -345,9 +345,9 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
         checkTaskCountForSixTasks(manager);
 
-        final Optional<Task> optionalTask = manager.getTaskById(task1.getId());
-        final Optional<Task> optionalEpic = manager.getTaskById(epic1.getId());
-        final Optional<Task> optionalSubTask = manager.getTaskById(subTask3.getId());
+        final Optional<Task> optionalTask = manager.findAnyTaskById(task1.getId());
+        final Optional<Task> optionalEpic = manager.findAnyTaskById(epic1.getId());
+        final Optional<Task> optionalSubTask = manager.findAnyTaskById(subTask3.getId());
 
         assertTrue(optionalTask.isPresent(), "Задача не находиться по id.");
         assertTrue(optionalEpic.isPresent(), "Эпик не находиться по id.");
@@ -442,7 +442,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
         manager.addSubTask(subTask2);
         manager.addSubTask(subTask3);
 
-        Epic epicInManager = (Epic) manager.getTaskById(1).orElseThrow();
+        Epic epicInManager = (Epic) manager.findAnyTaskById(1).orElseThrow();
         assertEquals(threeSubTaskIdList, epicInManager.getSubTaskIdList(),
                 "В начальный Epic должны записаться id трех подзадач.");
 
@@ -453,7 +453,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
         manager.updateEpic(updateEpic);
         checkTaskCountCustom(manager, 0, 1, 3, 4);
 
-        epicInManager = (Epic) manager.getTaskById(1).orElseThrow();
+        epicInManager = (Epic) manager.findAnyTaskById(1).orElseThrow();
 
         assertEquals(threeSubTaskIdList, epicInManager.getSubTaskIdList(),
                 "Update Epic должен скопировать в новый эпик subTaskIdList прошлого экземпляра эпика.");
@@ -469,7 +469,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
         manager.addSubTask(subTask4);
         checkTaskCountCustom(manager, 0, 1, 4, 5);
 
-        epicInManager = (Epic) manager.getTaskById(1).orElseThrow();
+        epicInManager = (Epic) manager.findAnyTaskById(1).orElseThrow();
 
         assertEquals(fourSubTaskIdList, epicInManager.getSubTaskIdList(),
                 "В subTaskIdList эпика должна быть записана новая подзадача.");
@@ -549,9 +549,9 @@ abstract class TaskManagerTest<T extends TaskManager> {
         createThreeTaskListForTests(manager);
 
         final List<Task> checkList = new ArrayList<>();
-        checkList.add(manager.getTaskById(task1.getId()).orElseThrow());
-        checkList.add(manager.getTaskById(epic1.getId()).orElseThrow());
-        checkList.add(manager.getTaskById(subTask1.getId()).orElseThrow());
+        checkList.add(manager.findAnyTaskById(task1.getId()).orElseThrow());
+        checkList.add(manager.findAnyTaskById(epic1.getId()).orElseThrow());
+        checkList.add(manager.findAnyTaskById(subTask1.getId()).orElseThrow());
 
         checkTasksUnchangedCustom(checkList, manager.getHistory());
 
@@ -566,9 +566,9 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
         checkList.clear();
 
-        checkList.add(manager.getTaskById(updateTask.getId()).orElseThrow());
-        checkList.add(manager.getTaskById(updateEpic.getId()).orElseThrow());
-        checkList.add(manager.getTaskById(updateSubTask.getId()).orElseThrow());
+        checkList.add(manager.findAnyTaskById(updateTask.getId()).orElseThrow());
+        checkList.add(manager.findAnyTaskById(updateEpic.getId()).orElseThrow());
+        checkList.add(manager.findAnyTaskById(updateSubTask.getId()).orElseThrow());
 
         checkTasksUnchangedCustom(checkList, manager.getHistory());
     }
@@ -577,12 +577,12 @@ abstract class TaskManagerTest<T extends TaskManager> {
     public void getHistoryMustDeleteTasksIfTaskManagerDeletesThem() {
         createSixTaskListForTests(manager);
 
-        manager.getTaskById(task1.getId()).orElseThrow();
-        manager.getTaskById(epic1.getId()).orElseThrow();
-        manager.getTaskById(epic2.getId()).orElseThrow();
-        manager.getTaskById(subTask1.getId()).orElseThrow();
-        manager.getTaskById(subTask2.getId()).orElseThrow();
-        manager.getTaskById(subTask3.getId()).orElseThrow();
+        manager.findAnyTaskById(task1.getId()).orElseThrow();
+        manager.findAnyTaskById(epic1.getId()).orElseThrow();
+        manager.findAnyTaskById(epic2.getId()).orElseThrow();
+        manager.findAnyTaskById(subTask1.getId()).orElseThrow();
+        manager.findAnyTaskById(subTask2.getId()).orElseThrow();
+        manager.findAnyTaskById(subTask3.getId()).orElseThrow();
 
         manager.deleteTaskById(task1.getId());
         List<Task> history = manager.getHistory();
@@ -611,7 +611,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
         manager.addEpic(epic1);
 
 
-        Epic epicInManager = (Epic) manager.getTaskById(1).orElseThrow();
+        Epic epicInManager = (Epic) manager.findAnyTaskById(1).orElseThrow();
         assertEquals(Status.NEW, epicInManager.getStatus(),
                 "Статус нового эпика должен быть NEW.");
 
@@ -620,7 +620,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
         manager.addSubTask(subTask1);
         manager.addSubTask(subTask2);
-        epicInManager = (Epic) manager.getTaskById(1).orElseThrow();
+        epicInManager = (Epic) manager.findAnyTaskById(1).orElseThrow();
         assertEquals(Status.NEW, epicInManager.getStatus(),
                 "Статус эпика после добавления новых подзадач должен быть NEW.");
 
@@ -630,11 +630,11 @@ abstract class TaskManagerTest<T extends TaskManager> {
                 "ПОДЗАДАЧА2 ОБНОВЛЕНА", "описание", Status.IN_PROGRESS, 1);
 
         manager.updateSubTask(updateTask1);
-        epicInManager = (Epic) manager.getTaskById(1).orElseThrow();
+        epicInManager = (Epic) manager.findAnyTaskById(1).orElseThrow();
         assertEquals(Status.IN_PROGRESS, epicInManager.getStatus(),
                 "Статус эпика после должен быть IN_PROGRESS пока все задачи не NEW и не DONE.");
         manager.updateSubTask(updateTask2);
-        epicInManager = (Epic) manager.getTaskById(1).orElseThrow();
+        epicInManager = (Epic) manager.findAnyTaskById(1).orElseThrow();
         assertEquals(Status.IN_PROGRESS, epicInManager.getStatus(),
                 "Статус эпика после должен быть IN_PROGRESS пока все задачи не NEW и не DONE.");
 
@@ -642,25 +642,25 @@ abstract class TaskManagerTest<T extends TaskManager> {
                 "ПОДЗАДАЧА2 ВЫПОЛНЕНА", "описание", Status.DONE, 1);
 
         manager.updateSubTask(updateSubTask2_2);
-        epicInManager = (Epic) manager.getTaskById(1).orElseThrow();
+        epicInManager = (Epic) manager.findAnyTaskById(1).orElseThrow();
         assertEquals(Status.DONE, epicInManager.getStatus(),
                 "Статус эпика должен быть DONE если все задачи DONE.");
 
         SubTask newSubTask = new SubTask("ПОДЗАДАЧА3", "описание", 1);
 
         manager.addSubTask(newSubTask);
-        epicInManager = (Epic) manager.getTaskById(1).orElseThrow();
+        epicInManager = (Epic) manager.findAnyTaskById(1).orElseThrow();
         assertEquals(Status.IN_PROGRESS, epicInManager.getStatus(),
                 "Статус эпика DONE должен смениться на IN_PROGRESS при добавлении NEW задачи.");
 
         manager.deleteTaskById(4);
-        epicInManager = (Epic) manager.getTaskById(1).orElseThrow();
+        epicInManager = (Epic) manager.findAnyTaskById(1).orElseThrow();
         assertEquals(Status.DONE, epicInManager.getStatus(),
                 "Статус эпика IN_PROGRESS должен смениться на DONE при удалении NEW задачи.");
 
         manager.deleteTaskById(2);
         manager.deleteTaskById(3);
-        epicInManager = (Epic) manager.getTaskById(1).orElseThrow();
+        epicInManager = (Epic) manager.findAnyTaskById(1).orElseThrow();
         assertEquals(Status.NEW, epicInManager.getStatus(),
                 "Статус эпика DONE должен смениться на NEW при удалении всех задач.");
     }
@@ -806,19 +806,19 @@ abstract class TaskManagerTest<T extends TaskManager> {
     }
 
     @Test
-    public void getTaskByIdMustReturnEmptyOptionalIfIdIsWrong() {
+    public void findAnyTaskByIdMustReturnEmptyOptionalIfIdIsWrong() {
         Task task1 = new Task("Задача", "Описание");
         manager.addTask(task1);
 
-        Optional<Task> wrongTask = manager.getTaskById(-999);
+        Optional<Task> wrongTask = manager.findAnyTaskById(-999);
         assertFalse(wrongTask.isPresent(),
                 "Должно возвращаться Optional.empty() при неправильном id.");
 
-        wrongTask = manager.getTaskById(0);
+        wrongTask = manager.findAnyTaskById(0);
         assertFalse(wrongTask.isPresent(),
                 "Должно возвращаться Optional.empty() при неправильном id.");
 
-        wrongTask = manager.getTaskById(999);
+        wrongTask = manager.findAnyTaskById(999);
         assertFalse(wrongTask.isPresent(),
                 "Должно возвращаться Optional.empty() при неправильном id.");
     }
@@ -864,12 +864,12 @@ abstract class TaskManagerTest<T extends TaskManager> {
         manager.addSubTask(newSubTask2);
         manager.addSubTask(newSubTask3);
 
-        task1 = manager.getTaskById(1).orElseThrow();
-        epic1 = (Epic) manager.getTaskById(2).orElseThrow();
-        epic2 = (Epic) manager.getTaskById(3).orElseThrow();
-        subTask1 = (SubTask) manager.getTaskById(4).orElseThrow();
-        subTask2 = (SubTask) manager.getTaskById(5).orElseThrow();
-        subTask3 = (SubTask) manager.getTaskById(6).orElseThrow();
+        task1 = manager.findAnyTaskById(1).orElseThrow();
+        epic1 = (Epic) manager.findAnyTaskById(2).orElseThrow();
+        epic2 = (Epic) manager.findAnyTaskById(3).orElseThrow();
+        subTask1 = (SubTask) manager.findAnyTaskById(4).orElseThrow();
+        subTask2 = (SubTask) manager.findAnyTaskById(5).orElseThrow();
+        subTask3 = (SubTask) manager.findAnyTaskById(6).orElseThrow();
 
         checkTaskCountForSixTasks(manager);
     }
@@ -889,12 +889,12 @@ abstract class TaskManagerTest<T extends TaskManager> {
         manager.addSubTask(subTask2);
         manager.addSubTask(subTask3);
 
-        task1 = manager.getTaskById(1).orElseThrow();
-        epic1 = (Epic) manager.getTaskById(2).orElseThrow();
-        epic2 = (Epic) manager.getTaskById(3).orElseThrow();
-        subTask1 = (SubTask) manager.getTaskById(4).orElseThrow();
-        subTask2 = (SubTask) manager.getTaskById(5).orElseThrow();
-        subTask3 = (SubTask) manager.getTaskById(6).orElseThrow();
+        task1 = manager.findAnyTaskById(1).orElseThrow();
+        epic1 = (Epic) manager.findAnyTaskById(2).orElseThrow();
+        epic2 = (Epic) manager.findAnyTaskById(3).orElseThrow();
+        subTask1 = (SubTask) manager.findAnyTaskById(4).orElseThrow();
+        subTask2 = (SubTask) manager.findAnyTaskById(5).orElseThrow();
+        subTask3 = (SubTask) manager.findAnyTaskById(6).orElseThrow();
 
         checkTaskCountForSixTasks(manager);
     }
@@ -907,9 +907,9 @@ abstract class TaskManagerTest<T extends TaskManager> {
         SubTask newSubTask = new SubTask("ПОДЗАДАЧА", "ОПИСАНИЕ ПОДЗАДАЧИ", 2, now.plusHours(1), Duration.ofMinutes(30));
         manager.addSubTask(newSubTask);
 
-        task1 = manager.getTaskById(1).orElseThrow();
-        epic1 = (Epic) manager.getTaskById(2).orElseThrow();
-        subTask1 = (SubTask) manager.getTaskById(3).orElseThrow();
+        task1 = manager.findAnyTaskById(1).orElseThrow();
+        epic1 = (Epic) manager.findAnyTaskById(2).orElseThrow();
+        subTask1 = (SubTask) manager.findAnyTaskById(3).orElseThrow();
 
         checkTaskCountForThreeTasks(manager);
     }
@@ -943,9 +943,9 @@ abstract class TaskManagerTest<T extends TaskManager> {
     }
 
     protected void checkTasksUnchangedForThreeTaskList(TaskManager manager, Task initialTask, Epic initialEpic, SubTask initialSubTask) {
-        Task taskToCheck = manager.getTaskById(initialTask.getId()).orElseThrow();
-        Epic epicToCheck = (Epic) manager.getTaskById(initialEpic.getId()).orElseThrow();
-        SubTask subTaskToCheck = (SubTask) manager.getTaskById(initialSubTask.getId()).orElseThrow();
+        Task taskToCheck = manager.findAnyTaskById(initialTask.getId()).orElseThrow();
+        Epic epicToCheck = (Epic) manager.findAnyTaskById(initialEpic.getId()).orElseThrow();
+        SubTask subTaskToCheck = (SubTask) manager.findAnyTaskById(initialSubTask.getId()).orElseThrow();
 
         assertEquals(initialTask.getName(), taskToCheck.getName(), "Имя задачи изменилось.");
         assertEquals(initialEpic.getName(), epicToCheck.getName(), "Имя эпика изменилось.");

@@ -1,5 +1,6 @@
 package com.yandex.taskmanager.service;
 
+import com.yandex.taskmanager.exceptions.NotFoundException;
 import com.yandex.taskmanager.model.Task;
 import com.yandex.taskmanager.model.Epic;
 import com.yandex.taskmanager.model.SubTask;
@@ -114,7 +115,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public Optional<Task> getTaskById(int id) {
+    public Optional<Task> findAnyTaskById(int id) {
         Task task = tasks.get(id);
         if (task != null) {
             historyManager.add(task);
@@ -134,6 +135,39 @@ public class InMemoryTaskManager implements TaskManager {
         }
 
         return Optional.empty();
+    }
+
+    @Override
+    public Task getTaskById(int id) {
+        Task task = tasks.get(id);
+        if (task != null) {
+            historyManager.add(task);
+            return task;
+        } else {
+            throw new NotFoundException("Task with id: " + id + " not found in TaskManager.");
+        }
+    }
+
+    @Override
+    public Epic getEpicById(int id) {
+        Epic epic = epics.get(id);
+        if (epic != null) {
+            historyManager.add(epic);
+            return epic;
+        } else {
+            throw new NotFoundException("Epic with id: " + id + " not found in TaskManager.");
+        }
+    }
+
+    @Override
+    public SubTask getSubTaskById(int id) {
+        SubTask subTask = subTasks.get(id);
+        if (subTask != null) {
+            historyManager.add(subTask);
+            return subTask;
+        } else {
+            throw new NotFoundException("SubTask with id: " + id + " not found in TaskManager.");
+        }
     }
 
     @Override
