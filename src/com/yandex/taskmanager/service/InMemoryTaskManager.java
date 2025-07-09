@@ -256,6 +256,10 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     private void addToTasks(Task task) {
+        if (task.getEndTime() != null && !isCalendarIntervalFree(task)) {
+            throw new IllegalArgumentException("Cannot add Task - task interval is occupied.");
+        }
+
         idCounter++;
         Task newTask = new Task(idCounter, task.getName(), task.getDescription(), task.getStartTime(), task.getDuration());
         tasks.put(newTask.getId(), newTask);
@@ -270,6 +274,10 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     private void addToSubTasks(SubTask subTask) {
+        if (subTask.getEndTime() != null && !isCalendarIntervalFree(subTask)) {
+            throw new IllegalArgumentException("Cannot add SubTask - SubTask interval is occupied.");
+        }
+
         idCounter++;
         SubTask newSubTask = new SubTask(idCounter, subTask.getName(), subTask.getDescription(), subTask.getEpicId(),
                 subTask.getStartTime(), subTask.getDuration());
@@ -335,9 +343,6 @@ public class InMemoryTaskManager implements TaskManager {
             return;
         }
 
-        if (!isCalendarIntervalFree(task)) {
-            throw new IllegalArgumentException("Cannot add Task - task interval is occupied");
-        }
         markCalendarInterval(task);
         prioritizedTasks.add(task);
     }
