@@ -15,20 +15,24 @@ public class BaseHttpHandler {
         sendResponseWithJson(exchange, text, 201);
     }
 
-    protected void sendNotFound(HttpExchange exchange, String text) throws IOException {
-        sendResponseWithText(exchange, text, 404);
+    protected void sendInvalidPathFormat(HttpExchange exchange, String text) throws IOException {
+        sendResponseWithText(exchange, text, 400);
     }
 
-    protected void sendHasInteractions(HttpExchange exchange, String text) throws IOException {
-        sendResponseWithText(exchange, text, 409);
+    protected void sendNotFound(HttpExchange exchange, String text) throws IOException {
+        sendResponseWithText(exchange, text, 404);
     }
 
     protected void sendMethodNotAllowed(HttpExchange exchange, String text) throws IOException {
         sendResponseWithText(exchange, text, 405);
     }
 
-    protected void sendInvalidPathFormat(HttpExchange exchange, String text) throws IOException {
-        sendResponseWithText(exchange, text, 400);
+    protected void sendHasInteractions(HttpExchange exchange, String text) throws IOException {
+        sendResponseWithText(exchange, text, 406);
+    }
+
+    protected void sendInternalServerError(HttpExchange exchange, String text) throws IOException {
+        sendResponseWithText(exchange, text, 500);
     }
 
     private void sendResponseWithJson(HttpExchange exchange, String text, int code) throws IOException {
