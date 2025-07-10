@@ -427,6 +427,16 @@ public class InMemoryTaskManager implements TaskManager {
             return;
         }
 
+        if (oldTask.getEndTime() == null) {
+            if (isCalendarIntervalFree(newTask)) {
+                markCalendarInterval(newTask);
+                prioritizedTasks.add(newTask);
+            } else {
+                throw new IllegalArgumentException("Cannot update Task - task interval is occupied");
+            }
+            return;
+        }
+
         freeCalendarInterval(oldTask);
         if (isCalendarIntervalFree(newTask)) {
             prioritizedTasks.remove(oldTask);
