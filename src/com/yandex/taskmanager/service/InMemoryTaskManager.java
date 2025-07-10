@@ -248,52 +248,64 @@ public class InMemoryTaskManager implements TaskManager {
         if (task instanceof Epic || task instanceof SubTask) {
             throw new IllegalArgumentException("Epics and SubTasks must be updated using their own methods.");
         }
+        int id = task.getId();
 
-        if (isTaskOkToUpdate(task)) {
-            updatePrioritizedTasks(task, tasks.get(task.getId()));
-            tasks.put(task.getId(), task);
+        if (!tasks.containsKey(id)) {
+            throw new NotFoundException("Cannot update Task. Task with Id: " + id +
+                    " not found in TaskManager.");
         }
+        updatePrioritizedTasks(task, tasks.get(task.getId()));
+        tasks.put(task.getId(), task);
     }
 
     @Override
     public void updateEpic(Epic epic) {
-        if (isTaskOkToUpdate(epic)) {
-            if (!epic.getSubTaskIdList().isEmpty()) {
-                throw new IllegalArgumentException("Cannot update Epic: subTaskIdList must be empty to avoid " +
-                        "conflicts with TaskManager.");
-            }
-            int epicId = epic.getId();
-            Epic oldEpic = epics.get(epicId);
+        checkTaskDataCorrect(epic);
+        int id = epic.getId();
 
-            Epic updatedEpic = new Epic(epic, oldEpic.getSubTaskIdList());
-            epics.put(epicId, updatedEpic);
-            updateEpicStatus(epicId);
-            setEpicTime(epicId);
+        if (!epic.getSubTaskIdList().isEmpty()) {
+            throw new IllegalArgumentException("Cannot update Epic: subTaskIdList must be empty to avoid " +
+                    "conflicts with TaskManager.");
         }
+
+        if (!epics.containsKey(id)) {
+            throw new NotFoundException("Cannot update Epic. Epic with Id: " + id +
+                    " not found in TaskManager.");
+        }
+
+        Epic oldEpic = epics.get(id);
+        Epic updatedEpic = new Epic(epic, oldEpic.getSubTaskIdList());
+        epics.put(id, updatedEpic);
+        updateEpicStatus(id);
+        setEpicTime(id);
     }
 
     @Override
     public void updateSubTask(SubTask subTask) {
-        if (isTaskOkToUpdate(subTask)) {
-            int subTaskId = subTask.getId();
-            int epicId = subTask.getEpicId();
-            Epic epic = epics.get(epicId);
+        checkTaskDataCorrect(subTask);
+        int subTaskId = subTask.getId();
+        int epicId = subTask.getEpicId();
 
-            if (epic == null) {
-                throw new NotFoundException("Cannot update SubTask. EpicId: " + epicId + "of SubTask with Id: "
-                        + subTaskId + " not found in TaskManager.");
-            }
+        if (!subTasks.containsKey(subTaskId)) {
+            throw new NotFoundException("Cannot update SubTask. SubTask with Id: " + subTaskId +
+                    " not found in TaskManager.");
+        }
 
-            List<Integer> checkIds = epic.getSubTaskIdList();
-            if (checkIds.contains(subTaskId)) {
-                updatePrioritizedTasks(subTask, subTasks.get(subTaskId));
-                subTasks.put(subTaskId, subTask);
-                updateEpicStatus(epicId);
-                setEpicTime(epicId);
-            } else {
-                throw new NotFoundException("Cannot update SubTask. In Epic with EpicId: " + epicId +
-                        " there is no SubTask with Id: " + subTaskId + ".");
-            }
+        Epic epic = epics.get(epicId);
+        if (epic == null) {
+            throw new NotFoundException("Cannot update SubTask. EpicId: " + epicId + "of SubTask with Id: "
+                    + subTaskId + " not found in TaskManager.");
+        }
+
+        List<Integer> checkIds = epic.getSubTaskIdList();
+        if (checkIds.contains(subTaskId)) {
+            updatePrioritizedTasks(subTask, subTasks.get(subTaskId));
+            subTasks.put(subTaskId, subTask);
+            updateEpicStatus(epicId);
+            setEpicTime(epicId);
+        } else {
+            throw new NotFoundException("Cannot update SubTask. In Epic with EpicId: " + epicId +
+                    " there is no SubTask with Id: " + subTaskId + ".");
         }
     }
 
@@ -304,21 +316,6 @@ public class InMemoryTaskManager implements TaskManager {
             throw new IllegalArgumentException("Cannot add Task. Task (Id: " + task.getId() + ", Status: " +
                     task.getStatus() + ") is not new. New Task must have id = 0 and status = NEW.");
         }
-    }
-
-    private boolean isTaskOkToUpdate(Task task) {
-        checkTaskDataCorrect(task);
-
-        if (!isTaskInManager(task.getId())) {
-            throw new NotFoundException("Cannot update Task. Task with Id: " + task.getId() +
-                    " not found in TaskManager.");
-        } else {
-            return true;
-        }
-    }
-
-    private boolean isTaskInManager(int id) {
-        return (tasks.containsKey(id) || epics.containsKey(id) || subTasks.containsKey(id));
     }
 
     private void checkTaskDataCorrect(Task task) {
