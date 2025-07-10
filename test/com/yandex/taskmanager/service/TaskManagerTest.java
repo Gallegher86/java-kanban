@@ -180,7 +180,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
     public void addTaskMustThrowExceptionIfCreateSubTaskWithInvalidEpicId() {
         SubTask invalidEpicIdSubTask = new SubTask("Подзадача", "Описание", 999);
 
-        IllegalArgumentException ex1 = assertThrows(IllegalArgumentException.class,
+        NotFoundException ex1 = assertThrows(NotFoundException.class,
                 () -> manager.createSubTask(invalidEpicIdSubTask));
         assertTrue(ex1.getMessage().contains("Epic with ID"),
                 "Сообщение об ошибке должно содержать слово 'Epic with ID'.");
@@ -197,7 +197,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
         SubTask subTaskAsOwnEpic = new SubTask("Подзадача1", "id подзадачи, вместо epicId", 2);
 
-        IllegalArgumentException ex1 = assertThrows(IllegalArgumentException.class,
+        NotFoundException ex1 = assertThrows(NotFoundException.class,
                 () -> manager.createSubTask(subTaskAsOwnEpic));
         assertTrue(ex1.getMessage().contains("Epic with ID"),
                 "Сообщение об ошибке должно содержать слово 'Epic with ID'.");
@@ -408,15 +408,15 @@ abstract class TaskManagerTest<T extends TaskManager> {
         SubTask invalidIdSubTask = new SubTask(1001, "ПОДЗАДАЧА с несуществующим id",
                 "описание", Status.DONE, epic1.getId());
 
-        IllegalArgumentException ex1 = assertThrows(IllegalArgumentException.class,
+        NotFoundException ex1 = assertThrows(NotFoundException.class,
                 () -> manager.updateTask(invalidIdTask));
         assertTrue(ex1.getMessage().contains("not found in TaskManager"),
                 "Сообщение об ошибке должно содержать слово 'not found in TaskManager'.");
-        IllegalArgumentException ex2 = assertThrows(IllegalArgumentException.class,
+        NotFoundException ex2 = assertThrows(NotFoundException.class,
                 () -> manager.updateEpic(invalidIdEpic));
         assertTrue(ex2.getMessage().contains("not found in TaskManager"),
                 "Сообщение об ошибке должно содержать слово 'not found in TaskManager'.");
-        IllegalArgumentException ex3 = assertThrows(IllegalArgumentException.class,
+        NotFoundException ex3 = assertThrows(NotFoundException.class,
                 () -> manager.updateSubTask(invalidIdSubTask));
         assertTrue(ex3.getMessage().contains("not found in TaskManager"),
                 "Сообщение об ошибке должно содержать слово 'not found in TaskManager'.");
@@ -512,7 +512,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
         SubTask noEpicIdSubTask = new SubTask(subTask1.getId(), "epicId ПОДЗАДАЧИ ссылается на id ЗАДАЧИ вместо ЭПИКА",
                 "CHANGED", Status.DONE, task1.getId());
 
-        IllegalArgumentException ex1 = assertThrows(IllegalArgumentException.class,
+        NotFoundException ex1 = assertThrows(NotFoundException.class,
                 () -> manager.updateSubTask(noEpicIdSubTask));
         assertTrue(ex1.getMessage().contains("EpicId"),
                 "Сообщение об ошибке должно содержать слово 'EpicId'.");
@@ -535,7 +535,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
                 "id ПОДЗАДАЧИ ссылается на ПЕРВЫЙ ЭПИК, epicId ПОДЗАДАЧИ ссылается на id ВТОРОГО ЭПИКА",
                 "CHANGED", Status.DONE, 4);
 
-        IllegalArgumentException ex1 = assertThrows(IllegalArgumentException.class,
+        NotFoundException ex1 = assertThrows(NotFoundException.class,
                 () -> manager.updateSubTask(wrongEpicIdSubTask));
         assertTrue(ex1.getMessage().contains("there is no SubTask with Id"),
                 "Сообщение об ошибке должно содержать слово 'there is no SubTask with Id'.");

@@ -38,13 +38,13 @@ public class InMemoryTaskManager implements TaskManager {
             throw new IllegalArgumentException("Epics and SubTasks must be added using their own methods.");
         }
 
-        isTaskOkToAdd(task);
+        checkTaskOkToAdd(task);
         return addToTasks(task);
     }
 
     @Override
     public Epic createEpic(Epic epic) {
-        isTaskOkToAdd(epic);
+        checkTaskOkToAdd(epic);
 
         if (!epic.getSubTaskIdList().isEmpty()) {
             throw new IllegalArgumentException("Cannot add Epic with non-empty subTaskIdList. Only new Epics " +
@@ -55,11 +55,11 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public SubTask createSubTask(SubTask subTask) {
-        isTaskOkToAdd(subTask);
+        checkTaskOkToAdd(subTask);
 
         Epic epic = epics.get(subTask.getEpicId());
         if (epic == null) {
-            throw new IllegalArgumentException("Cannot add SubTask. Epic with ID: " + subTask.getEpicId()
+            throw new NotFoundException("Cannot add SubTask. Epic with ID: " + subTask.getEpicId()
                     + " not found in TaskManager.");
         }
         return addToSubTasks(subTask);
@@ -280,7 +280,7 @@ public class InMemoryTaskManager implements TaskManager {
             Epic epic = epics.get(epicId);
 
             if (epic == null) {
-                throw new IllegalArgumentException("Cannot update SubTask. EpicId: " + epicId + "of SubTask with Id: "
+                throw new NotFoundException("Cannot update SubTask. EpicId: " + epicId + "of SubTask with Id: "
                         + subTaskId + " not found in TaskManager.");
             }
 
@@ -291,18 +291,16 @@ public class InMemoryTaskManager implements TaskManager {
                 updateEpicStatus(epicId);
                 setEpicTime(epicId);
             } else {
-                throw new IllegalArgumentException("Cannot update SubTask. In Epic with EpicId: " + epicId +
+                throw new NotFoundException("Cannot update SubTask. In Epic with EpicId: " + epicId +
                         " there is no SubTask with Id: " + subTaskId + ".");
             }
         }
     }
 
-    private boolean isTaskOkToAdd(Task task) {
+    private void checkTaskOkToAdd(Task task) {
         checkTaskDataCorrect(task);
 
-        if (task.getId() == 0 && task.getStatus() == Status.NEW) {
-            return true;
-        } else {
+        if (task.getId() != 0 || task.getStatus() != Status.NEW) {
             throw new IllegalArgumentException("Cannot add Task. Task (Id: " + task.getId() + ", Status: " +
                     task.getStatus() + ") is not new. New Task must have id = 0 and status = NEW.");
         }
@@ -312,7 +310,7 @@ public class InMemoryTaskManager implements TaskManager {
         checkTaskDataCorrect(task);
 
         if (!isTaskInManager(task.getId())) {
-            throw new IllegalArgumentException("Cannot update Task. Task with Id: " + task.getId() +
+            throw new NotFoundException("Cannot update Task. Task with Id: " + task.getId() +
                     " not found in TaskManager.");
         } else {
             return true;
