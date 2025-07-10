@@ -1,4 +1,4 @@
-package com.yandex.taskmanager.json;
+package com.yandex.taskmanager.web.json;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
