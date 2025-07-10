@@ -11,6 +11,10 @@ public class BaseHttpHandler {
         sendResponseWithJson(exchange, text, 200);
     }
 
+    protected void sendOk(HttpExchange exchange, String text) throws IOException {
+        sendResponseWithText(exchange, text, 200);
+    }
+
     protected void sendCreated(HttpExchange exchange, String text) throws IOException {
         sendResponseWithJson(exchange, text, 201);
     }

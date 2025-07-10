@@ -1,9 +1,12 @@
 package com.yandex.taskmanager.web;
 
-import com.yandex.taskmanager.model.Task;
 import com.yandex.taskmanager.service.TaskManager;
+import com.yandex.taskmanager.model.Epic;
 import com.yandex.taskmanager.web.json.GsonAdapters;
 import com.yandex.taskmanager.web.dto.TaskDto;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -13,19 +16,15 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 import java.io.IOException;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import com.google.gson.JsonSyntaxException;
 import com.yandex.taskmanager.exceptions.NotFoundException;
 
-public class TasksHandler extends BaseHttpHandler implements HttpHandler {
+public class EpicsHandler extends BaseHttpHandler implements HttpHandler {
     TaskManager manager;
     Gson gson = GsonAdapters.createGson();
 
-    public TasksHandler(TaskManager manager) {
+    public EpicsHandler(TaskManager manager) {
         this.manager = manager;
     }
 
@@ -39,21 +38,24 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
             switch (method) {
                 case "GET":
                     if (parts.length == 2) {
-                        sendTasks(httpExchange);
+                        sendEpics(httpExchange);
                     } else if (parts.length == 3) {
                         int id = parseId(httpExchange, parts);
-                        Task task = manager.getTaskById(id);
-                        sendText(httpExchange, gson.toJson(TaskDto.fromTask(task)));
+                        Epic epic = manager.getEpicById(id);
+                        sendText(httpExchange, gson.toJson(TaskDto.fromEpic(epic)));
+                    } else if (parts.length == 4 && parts[3].equals("subtasks")) {
+                        int id = parseId(httpExchange, parts);
+                        sendSubTasks(httpExchange, id);
                     } else {
                         sendInvalidPathFormat(httpExchange, "Bad request: wrong path format");
                     }
                     break;
                 case "POST":
                     if (parts.length == 2) {
-                        createTask(httpExchange);
+                        createEpic(httpExchange);
                     } else if (parts.length == 3) {
                         int id = parseId(httpExchange, parts);
-                        updateTask(httpExchange, id);
+                        updateEpic(httpExchange, id);
                     } else {
                         sendInvalidPathFormat(httpExchange, "Bad request: wrong path format");
                     }
@@ -61,8 +63,8 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
                 case "DELETE":
                     if (parts.length == 3) {
                         int id = parseId(httpExchange, parts);
-                        manager.deleteTask(id);
-                        sendOk(httpExchange, "Task with id: " + id + " deleted.");
+                        manager.deleteEpic(id);
+                        sendOk(httpExchange, "Epic with id: " + id + " deleted.");
                     } else {
                         sendInvalidPathFormat(httpExchange, "Bad request: wrong path format");
                     }
@@ -83,15 +85,23 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
         }
     }
 
-    private void sendTasks(HttpExchange httpExchange) throws IOException {
-        List<TaskDto> dtoList = manager.getTasks().stream()
-                .map(TaskDto::fromTask)
+    private void sendEpics(HttpExchange httpExchange) throws IOException {
+        List<TaskDto> dtoList = manager.getEpics().stream()
+                .map(TaskDto::fromEpic)
                 .collect(Collectors.toList());
 
         sendText(httpExchange, gson.toJson(dtoList));
     }
 
-    private void createTask(HttpExchange httpExchange) throws IOException {
+    private void sendSubTasks(HttpExchange httpExchange, int id) throws IOException {
+        List<TaskDto> dtoList = manager.getEpicSubTasks(id).stream()
+                .map(TaskDto::fromSubTask)
+                .collect(Collectors.toList());
+
+        sendText(httpExchange, gson.toJson(dtoList));
+    }
+
+    private void createEpic(HttpExchange httpExchange) throws IOException {
         InputStream is = httpExchange.getRequestBody();
         String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 
@@ -99,11 +109,9 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
             TaskDto dtoTask = gson.fromJson(body, TaskDto.class);
             String name = dtoTask.getName();
             String description = dtoTask.getDescription();
-            LocalDateTime startTime = dtoTask.getStartTime();
-            Duration duration = dtoTask.getDuration();
 
-            Task newTask = manager.createTask(new Task(name, description, startTime, duration));
-            String jsonResponse = gson.toJson(TaskDto.fromTask(newTask));
+            Epic newEpic = manager.createEpic(new Epic(name, description));
+            String jsonResponse = gson.toJson(TaskDto.fromEpic(newEpic));
             sendCreated(httpExchange, jsonResponse);
         } catch (IllegalArgumentException ex) {
             sendHasInteractions(httpExchange, ex.getMessage());
@@ -112,7 +120,7 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
         }
     }
 
-    private void updateTask(HttpExchange httpExchange, int id) throws IOException {
+    private void updateEpic(HttpExchange httpExchange, int id) throws IOException {
         InputStream is = httpExchange.getRequestBody();
         String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 
@@ -120,12 +128,10 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
             TaskDto dtoTask = gson.fromJson(body, TaskDto.class);
             String name = dtoTask.getName();
             String description = dtoTask.getDescription();
-            LocalDateTime startTime = dtoTask.getStartTime();
-            Duration duration = dtoTask.getDuration();
 
-            Task taskToUpdate = new Task(id, name, description, startTime, duration);
-            manager.updateTask(taskToUpdate);
-            sendOk(httpExchange, "Task with id: " + id + " updated.");
+            Epic epicToUpdate = new Epic(id, name, description);
+            manager.updateEpic(epicToUpdate);
+            sendOk(httpExchange, "Epic with id: " +id + " updated.");
         } catch (IllegalArgumentException ex) {
             sendHasInteractions(httpExchange, ex.getMessage());
         } catch (NotFoundException ex) {

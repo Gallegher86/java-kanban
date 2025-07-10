@@ -19,7 +19,6 @@ public class GsonAdapters {
                 .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
                 .registerTypeAdapter(Duration.class, new DurationAdapter())
                 .setPrettyPrinting()
-                .serializeNulls()
                 .create();
     }
 
