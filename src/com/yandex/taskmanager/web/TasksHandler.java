@@ -135,11 +135,11 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
         }
     }
 
-    private Integer parseId(HttpExchange exchange, String[] parts) throws IOException {
+    private Integer parseId(HttpExchange httpExchange, String[] parts) throws IOException {
         try {
             return Integer.parseInt(parts[2]);
         } catch (NumberFormatException ex) {
-            sendInvalidPathFormat(exchange, "Invalid id format.");
+            sendInvalidPathFormat(httpExchange, "Invalid id format.");
             throw new IllegalArgumentException("Invalid id format.");
         }
     }
