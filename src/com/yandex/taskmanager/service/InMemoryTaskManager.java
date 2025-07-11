@@ -245,6 +245,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void updateTask(Task task) {
+        checkTaskDataCorrect(task);
         if (task instanceof Epic || task instanceof SubTask) {
             throw new IllegalArgumentException("Epics and SubTasks must be updated using their own methods.");
         }
@@ -328,11 +329,29 @@ public class InMemoryTaskManager implements TaskManager {
         if (task.getName() == null) {
             errors.add("Task provided to Task Manager has null name.");
         }
+
+        if (task.getName() != null && task.getName().isBlank()) {
+            errors.add("Task provided to Task Manager has empty name.");
+        }
+
         if (task.getDescription() == null) {
             errors.add("Task provided to Task Manager has null description.");
         }
+
         if (task.getStatus() == null) {
             errors.add("Task provided to Task Manager has null status.");
+        }
+
+        if (task.getStartTime() == null && task.getDuration() != null) {
+            errors.add("Task provided to Task Manager has duration but no startTime.");
+        }
+
+        if (task.getStartTime() != null && task.getDuration() == null) {
+            errors.add("Task provided to Task Manager has startTime but no duration.");
+        }
+
+        if (task.getDuration() != null && task.getDuration().isNegative()) {
+            errors.add("Task provided to Task Manager has negative duration.");
         }
 
         if (!errors.isEmpty()) {
@@ -416,6 +435,10 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     private void updatePrioritizedTasks(Task newTask, Task oldTask) {
+        if (newTask.getEndTime() == null && oldTask.getEndTime() == null) {
+            return;
+        }
+
         if (newTask.getEndTime() == null) {
             if (prioritizedTasks.contains(oldTask)) {
                 freeCalendarInterval(oldTask);
