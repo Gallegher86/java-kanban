@@ -84,4 +84,8 @@ public class TaskDto {
     public Duration getDuration() {
         return duration;
     }
+
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
 }

@@ -42,7 +42,7 @@ public class SubTasksHandler extends BaseHttpHandler implements HttpHandler {
                     if (parts.length == 2) {
                         sendSubTasks(httpExchange);
                     } else if (parts.length == 3) {
-                        int id = parseId(httpExchange, parts);
+                        int id = parseId(parts);
                         SubTask subTask = manager.getSubTaskById(id);
                         sendText(httpExchange, gson.toJson(TaskDto.fromSubTask(subTask)));
                     } else {
@@ -53,7 +53,7 @@ public class SubTasksHandler extends BaseHttpHandler implements HttpHandler {
                     if (parts.length == 2) {
                         createSubTask(httpExchange);
                     } else if (parts.length == 3) {
-                        int id = parseId(httpExchange, parts);
+                        int id = parseId(parts);
                         updateSubTask(httpExchange, id);
                     } else {
                         sendInvalidPathFormat(httpExchange, "Bad request: wrong path format");
@@ -61,7 +61,7 @@ public class SubTasksHandler extends BaseHttpHandler implements HttpHandler {
                     break;
                 case "DELETE":
                     if (parts.length == 3) {
-                        int id = parseId(httpExchange, parts);
+                        int id = parseId(parts);
                         manager.deleteSubTask(id);
                         sendOk(httpExchange, "SubTask with id: " + id + " deleted.");
                     } else {
@@ -80,7 +80,7 @@ public class SubTasksHandler extends BaseHttpHandler implements HttpHandler {
             sendInvalidPathFormat(httpExchange, ex.getMessage());
         } catch (Exception ex) {
             ex.printStackTrace();
-            sendInternalServerError(httpExchange, "Internal server error.");
+            sendInternalServerError(httpExchange);
         }
     }
 
@@ -88,27 +88,20 @@ public class SubTasksHandler extends BaseHttpHandler implements HttpHandler {
         List<TaskDto> dtoList = manager.getSubTasks().stream()
                 .map(TaskDto::fromSubTask)
                 .collect(Collectors.toList());
-
         sendText(httpExchange, gson.toJson(dtoList));
     }
 
     private void createSubTask(HttpExchange httpExchange) throws IOException {
-        InputStream is = httpExchange.getRequestBody();
-        String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-
         try {
-            TaskDto dtoSubTask = gson.fromJson(body, TaskDto.class);
+            TaskDto dtoSubTask = readDto(httpExchange, gson);
             String name = dtoSubTask.getName();
             String description = dtoSubTask.getDescription();
             LocalDateTime startTime = dtoSubTask.getStartTime();
             Duration duration = dtoSubTask.getDuration();
-            int epicId;
-
-            try {
-                epicId = dtoSubTask.getEpicId();
-            } catch (NullPointerException ex) {
-                sendInvalidPathFormat(httpExchange, "EpicId provided to Task Manager is null.");
-                throw new NullPointerException("EpicId provided to Task Manager is null.");
+            Integer epicId = dtoSubTask.getEpicId();
+            if (epicId == null) {
+                sendInvalidPathFormat(httpExchange, "EpicId is required.");
+                return;
             }
 
             SubTask newSubTask = manager.createSubTask(new SubTask(name, description, epicId, startTime, duration));
@@ -122,11 +115,8 @@ public class SubTasksHandler extends BaseHttpHandler implements HttpHandler {
     }
 
     private void updateSubTask(HttpExchange httpExchange, int id) throws IOException {
-        InputStream is = httpExchange.getRequestBody();
-        String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-
         try {
-            TaskDto dtoSubTask = gson.fromJson(body, TaskDto.class);
+            TaskDto dtoSubTask = readDto(httpExchange, gson);
             String name = dtoSubTask.getName();
             String description = dtoSubTask.getDescription();
             Status status = dtoSubTask.getStatus();
@@ -144,15 +134,6 @@ public class SubTasksHandler extends BaseHttpHandler implements HttpHandler {
             sendNotFound(httpExchange, ex.getMessage());
         } catch (JsonSyntaxException ex) {
             sendInvalidPathFormat(httpExchange, "Invalid JSON format.");
-        }
-    }
-
-    private Integer parseId(HttpExchange httpExchange, String[] parts) throws IOException {
-        try {
-            return Integer.parseInt(parts[2]);
-        } catch (NumberFormatException ex) {
-            sendInvalidPathFormat(httpExchange, "Invalid id format.");
-            throw new IllegalArgumentException("Invalid id format.");
         }
     }
 }

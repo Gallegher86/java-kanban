@@ -1,5 +1,6 @@
 package com.yandex.taskmanager.web;
 
+import com.yandex.taskmanager.model.Status;
 import com.yandex.taskmanager.model.Task;
 import com.yandex.taskmanager.service.TaskManager;
 import com.yandex.taskmanager.web.json.GsonAdapters;
@@ -9,16 +10,12 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.google.gson.Gson;
 
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.google.gson.JsonSyntaxException;
 import com.yandex.taskmanager.exceptions.NotFoundException;
 
 public class TasksHandler extends BaseHttpHandler implements HttpHandler {
@@ -41,7 +38,7 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
                     if (parts.length == 2) {
                         sendTasks(httpExchange);
                     } else if (parts.length == 3) {
-                        int id = parseId(httpExchange, parts);
+                        int id = parseId(parts);
                         Task task = manager.getTaskById(id);
                         sendText(httpExchange, gson.toJson(TaskDto.fromTask(task)));
                     } else {
@@ -52,7 +49,7 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
                     if (parts.length == 2) {
                         createTask(httpExchange);
                     } else if (parts.length == 3) {
-                        int id = parseId(httpExchange, parts);
+                        int id = parseId(parts);
                         updateTask(httpExchange, id);
                     } else {
                         sendInvalidPathFormat(httpExchange, "Bad request: wrong path format");
@@ -60,7 +57,7 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
                     break;
                 case "DELETE":
                     if (parts.length == 3) {
-                        int id = parseId(httpExchange, parts);
+                        int id = parseId(parts);
                         manager.deleteTask(id);
                         sendOk(httpExchange, "Task with id: " + id + " deleted.");
                     } else {
@@ -79,7 +76,7 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
             sendInvalidPathFormat(httpExchange, ex.getMessage());
         } catch (Exception ex) {
             ex.printStackTrace();
-            sendInternalServerError(httpExchange, "Internal server error.");
+            sendInternalServerError(httpExchange);
         }
     }
 
@@ -87,16 +84,12 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
         List<TaskDto> dtoList = manager.getTasks().stream()
                 .map(TaskDto::fromTask)
                 .collect(Collectors.toList());
-
         sendText(httpExchange, gson.toJson(dtoList));
     }
 
     private void createTask(HttpExchange httpExchange) throws IOException {
-        InputStream is = httpExchange.getRequestBody();
-        String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-
         try {
-            TaskDto dtoTask = gson.fromJson(body, TaskDto.class);
+            TaskDto dtoTask = readDto(httpExchange, gson);
             String name = dtoTask.getName();
             String description = dtoTask.getDescription();
             LocalDateTime startTime = dtoTask.getStartTime();
@@ -107,40 +100,25 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
             sendCreated(httpExchange, jsonResponse);
         } catch (IllegalArgumentException ex) {
             sendHasInteractions(httpExchange, ex.getMessage());
-        } catch (JsonSyntaxException ex) {
-            sendInvalidPathFormat(httpExchange, "Invalid JSON format.");
         }
     }
 
     private void updateTask(HttpExchange httpExchange, int id) throws IOException {
-        InputStream is = httpExchange.getRequestBody();
-        String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-
         try {
-            TaskDto dtoTask = gson.fromJson(body, TaskDto.class);
+            TaskDto dtoTask = readDto(httpExchange, gson);
             String name = dtoTask.getName();
             String description = dtoTask.getDescription();
+            Status status = dtoTask.getStatus();
             LocalDateTime startTime = dtoTask.getStartTime();
             Duration duration = dtoTask.getDuration();
 
-            Task taskToUpdate = new Task(id, name, description, startTime, duration);
+            Task taskToUpdate = new Task(id, name, description, status, startTime, duration);
             manager.updateTask(taskToUpdate);
             sendOk(httpExchange, "Task with id: " + id + " updated.");
         } catch (IllegalArgumentException ex) {
             sendHasInteractions(httpExchange, ex.getMessage());
         } catch (NotFoundException ex) {
             sendNotFound(httpExchange, ex.getMessage());
-        } catch (JsonSyntaxException ex) {
-            sendInvalidPathFormat(httpExchange, "Invalid JSON format.");
-        }
-    }
-
-    private Integer parseId(HttpExchange httpExchange, String[] parts) throws IOException {
-        try {
-            return Integer.parseInt(parts[2]);
-        } catch (NumberFormatException ex) {
-            sendInvalidPathFormat(httpExchange, "Invalid id format.");
-            throw new IllegalArgumentException("Invalid id format.");
         }
     }
 }

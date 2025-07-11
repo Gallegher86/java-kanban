@@ -40,11 +40,11 @@ public class EpicsHandler extends BaseHttpHandler implements HttpHandler {
                     if (parts.length == 2) {
                         sendEpics(httpExchange);
                     } else if (parts.length == 3) {
-                        int id = parseId(httpExchange, parts);
+                        int id = parseId(parts);
                         Epic epic = manager.getEpicById(id);
                         sendText(httpExchange, gson.toJson(TaskDto.fromEpic(epic)));
                     } else if (parts.length == 4 && parts[3].equals("subtasks")) {
-                        int id = parseId(httpExchange, parts);
+                        int id = parseId(parts);
                         sendSubTasks(httpExchange, id);
                     } else {
                         sendInvalidPathFormat(httpExchange, "Bad request: wrong path format");
@@ -54,7 +54,7 @@ public class EpicsHandler extends BaseHttpHandler implements HttpHandler {
                     if (parts.length == 2) {
                         createEpic(httpExchange);
                     } else if (parts.length == 3) {
-                        int id = parseId(httpExchange, parts);
+                        int id = parseId(parts);
                         updateEpic(httpExchange, id);
                     } else {
                         sendInvalidPathFormat(httpExchange, "Bad request: wrong path format");
@@ -62,7 +62,7 @@ public class EpicsHandler extends BaseHttpHandler implements HttpHandler {
                     break;
                 case "DELETE":
                     if (parts.length == 3) {
-                        int id = parseId(httpExchange, parts);
+                        int id = parseId(parts);
                         manager.deleteEpic(id);
                         sendOk(httpExchange, "Epic with id: " + id + " deleted.");
                     } else {
@@ -81,7 +81,7 @@ public class EpicsHandler extends BaseHttpHandler implements HttpHandler {
             sendInvalidPathFormat(httpExchange, ex.getMessage());
         } catch (Exception ex) {
             ex.printStackTrace();
-            sendInternalServerError(httpExchange, "Internal server error.");
+            sendInternalServerError(httpExchange);
         }
     }
 
@@ -89,7 +89,6 @@ public class EpicsHandler extends BaseHttpHandler implements HttpHandler {
         List<TaskDto> dtoList = manager.getEpics().stream()
                 .map(TaskDto::fromEpic)
                 .collect(Collectors.toList());
-
         sendText(httpExchange, gson.toJson(dtoList));
     }
 
@@ -97,16 +96,12 @@ public class EpicsHandler extends BaseHttpHandler implements HttpHandler {
         List<TaskDto> dtoList = manager.getEpicSubTasks(id).stream()
                 .map(TaskDto::fromSubTask)
                 .collect(Collectors.toList());
-
         sendText(httpExchange, gson.toJson(dtoList));
     }
 
     private void createEpic(HttpExchange httpExchange) throws IOException {
-        InputStream is = httpExchange.getRequestBody();
-        String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-
         try {
-            TaskDto dtoEpic = gson.fromJson(body, TaskDto.class);
+            TaskDto dtoEpic = readDto(httpExchange, gson);
             String name = dtoEpic.getName();
             String description = dtoEpic.getDescription();
 
@@ -121,11 +116,8 @@ public class EpicsHandler extends BaseHttpHandler implements HttpHandler {
     }
 
     private void updateEpic(HttpExchange httpExchange, int id) throws IOException {
-        InputStream is = httpExchange.getRequestBody();
-        String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-
         try {
-            TaskDto dtoEpic = gson.fromJson(body, TaskDto.class);
+            TaskDto dtoEpic = readDto(httpExchange, gson);
             String name = dtoEpic.getName();
             String description = dtoEpic.getDescription();
 
@@ -138,15 +130,6 @@ public class EpicsHandler extends BaseHttpHandler implements HttpHandler {
             sendNotFound(httpExchange, ex.getMessage());
         } catch (JsonSyntaxException ex) {
             sendInvalidPathFormat(httpExchange, "Invalid JSON format.");
-        }
-    }
-
-    private Integer parseId(HttpExchange httpExchange, String[] parts) throws IOException {
-        try {
-            return Integer.parseInt(parts[2]);
-        } catch (NumberFormatException ex) {
-            sendInvalidPathFormat(httpExchange, "Invalid id format.");
-            throw new IllegalArgumentException("Invalid id format.");
         }
     }
 }
