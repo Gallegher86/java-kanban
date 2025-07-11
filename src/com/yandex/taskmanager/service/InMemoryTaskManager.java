@@ -175,7 +175,7 @@ public class InMemoryTaskManager implements TaskManager {
         Epic epic = epics.get(id);
 
         if (epic == null) {
-            return List.of();
+            throw new NotFoundException("Epic with id: " + id + " not found in TaskManager.");
         }
 
         return epic.getSubTaskIdList().stream()

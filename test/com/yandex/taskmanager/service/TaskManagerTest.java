@@ -825,7 +825,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
     }
 
     @Test
-    public void getEpicSubTasksMustReturnCorrectSubTasksOrEmptyList() {
+    public void getEpicSubTasksMustReturnCorrectSubTasksOrThrowException() {
         createSixTaskListForTests(manager);
 
         final List<SubTask> testSubTaskList = new ArrayList<>();
@@ -836,12 +836,12 @@ abstract class TaskManagerTest<T extends TaskManager> {
         assertEquals(2, epicSubTasks.size(), "Эпик должен содержать 2 подзадачи.");
         assertEquals(testSubTaskList, epicSubTasks, "Выданные методом подзадачи не совпадают с ожидаемыми.");
 
-        final List<SubTask> wrongIdSubTasks = manager.getEpicSubTasks(999);
-        assertNotNull(wrongIdSubTasks, "При вводе неверного id не должен возвращаться null.");
-        assertTrue(wrongIdSubTasks.isEmpty(), "При вводе неверного id должен возвращаться пустой список.");
+        NotFoundException ex = assertThrows(NotFoundException.class, () -> manager.getEpicSubTasks(999));
+        assertTrue(ex.getMessage().contains("not found"),
+                "Сообщение об ошибке должно содержать слово 'not found'.");
 
         Epic emptyEpic = new Epic("Пустой эпик", "Описание");
-        manager.createEpic(emptyEpic);
+        emptyEpic = manager.createEpic(emptyEpic);
 
         final List<SubTask> emptyEpicSubTasks = manager.getEpicSubTasks(emptyEpic.getId());
         assertNotNull(emptyEpicSubTasks,
