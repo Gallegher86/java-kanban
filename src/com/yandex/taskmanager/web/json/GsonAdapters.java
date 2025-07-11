@@ -12,6 +12,9 @@ import java.time.LocalDateTime;
 import java.time.Duration;
 import java.time.format.DateTimeFormatter;
 
+import com.google.gson.JsonSyntaxException;
+import java.time.format.DateTimeParseException;
+
 public class GsonAdapters {
 
     public static Gson createGson() {
@@ -23,7 +26,7 @@ public class GsonAdapters {
     }
 
     private static class LocalDateTimeAdapter extends TypeAdapter<LocalDateTime> {
-        private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd--MM--yyyy HH:mm");
+        private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
 
         @Override
         public void write(final JsonWriter jsonWriter, final LocalDateTime localDateTime) throws IOException {
@@ -40,7 +43,12 @@ public class GsonAdapters {
                 jsonReader.nextNull();
                 return null;
             }
-            return LocalDateTime.parse(jsonReader.nextString(), dtf);
+            String dateStr = jsonReader.nextString();
+            try {
+                return LocalDateTime.parse(dateStr, dtf);
+            } catch (DateTimeParseException ex) {
+                throw new JsonSyntaxException("Invalid date format: " + dateStr + ". 'dd.MM.yyyy HH:mm' expected.");
+            }
         }
     }
 
@@ -60,7 +68,12 @@ public class GsonAdapters {
                 jsonReader.nextNull();
                 return null;
             }
-            return Duration.parse(jsonReader.nextString());
+            String durationStr = jsonReader.nextString();
+            try {
+                return Duration.parse(durationStr);
+            } catch (DateTimeParseException ex) {
+                throw new JsonSyntaxException("Invalid duration format: " + durationStr + ". Use ISO-8601, e.g. 'PT15M'.");
+            }
         }
     }
 }

@@ -51,7 +51,7 @@ public class BaseHttpHandler {
             String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
             return gson.fromJson(body, TaskDto.class);
         } catch (JsonSyntaxException ex) {
-            throw new IllegalArgumentException("Invalid JSON format.", ex);
+            throw new IllegalArgumentException("Invalid JSON format. " + ex.getMessage());
         }
     }
 
