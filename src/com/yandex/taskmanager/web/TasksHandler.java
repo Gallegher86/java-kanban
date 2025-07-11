@@ -18,11 +18,11 @@ import java.util.stream.Collectors;
 
 import com.yandex.taskmanager.exceptions.NotFoundException;
 
-public class TasksHandler extends BaseHttpHandler implements HttpHandler {
+class TasksHandler extends BaseHttpHandler implements HttpHandler {
     TaskManager manager;
     Gson gson = GsonAdapters.createGson();
 
-    public TasksHandler(TaskManager manager) {
+    TasksHandler(TaskManager manager) {
         this.manager = manager;
     }
 

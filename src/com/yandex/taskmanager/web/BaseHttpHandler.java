@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets;
 
 import com.google.gson.JsonSyntaxException;
 
-public class BaseHttpHandler {
+class BaseHttpHandler {
     protected void sendText(HttpExchange exchange, String text) throws IOException {
         sendResponseWithJson(exchange, text, 200);
     }

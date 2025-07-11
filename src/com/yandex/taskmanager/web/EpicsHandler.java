@@ -17,11 +17,11 @@ import java.io.IOException;
 import com.google.gson.JsonSyntaxException;
 import com.yandex.taskmanager.exceptions.NotFoundException;
 
-public class EpicsHandler extends BaseHttpHandler implements HttpHandler {
+class EpicsHandler extends BaseHttpHandler implements HttpHandler {
     TaskManager manager;
     Gson gson = GsonAdapters.createGson();
 
-    public EpicsHandler(TaskManager manager) {
+    EpicsHandler(TaskManager manager) {
         this.manager = manager;
     }
 
@@ -121,7 +121,7 @@ public class EpicsHandler extends BaseHttpHandler implements HttpHandler {
 
             Epic epicToUpdate = new Epic(id, name, description);
             manager.updateEpic(epicToUpdate);
-            sendOk(httpExchange, "Epic with id: " +id + " updated.");
+            sendOk(httpExchange, "Epic with id: " + id + " updated.");
         } catch (IllegalArgumentException ex) {
             sendHasInteractions(httpExchange, ex.getMessage());
         } catch (NotFoundException ex) {

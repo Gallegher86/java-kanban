@@ -14,11 +14,11 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-class HistoryHandler extends BaseHttpHandler implements HttpHandler {
+class PrioritizedHandler extends BaseHttpHandler implements HttpHandler {
     TaskManager manager;
     Gson gson = GsonAdapters.createGson();
 
-    HistoryHandler(TaskManager manager) {
+    PrioritizedHandler(TaskManager manager) {
         this.manager = manager;
     }
 
@@ -32,15 +32,7 @@ class HistoryHandler extends BaseHttpHandler implements HttpHandler {
             switch (method) {
                 case "GET":
                     if (parts.length == 2) {
-                        sendHistory(httpExchange);
-                    } else {
-                        sendInvalidPathFormat(httpExchange, "Bad request: wrong path format");
-                    }
-                    break;
-                case "DELETE":
-                    if (parts.length == 2) {
-                        manager.clearHistory();
-                        sendOk(httpExchange, "TaskManager history cleared.");
+                        sendPrioritizedTasks(httpExchange);
                     } else {
                         sendInvalidPathFormat(httpExchange, "Bad request: wrong path format");
                     }
@@ -57,8 +49,8 @@ class HistoryHandler extends BaseHttpHandler implements HttpHandler {
         }
     }
 
-    private void sendHistory(HttpExchange httpExchange) throws IOException {
-        List<TaskDto> dtoList = manager.getHistory().stream()
+    private void sendPrioritizedTasks(HttpExchange httpExchange) throws IOException {
+        List<TaskDto> dtoList = manager.getPrioritizedTasks().stream()
                 .map(task -> {
                     if (task instanceof Epic) {
                         return TaskDto.fromEpic((Epic) task);

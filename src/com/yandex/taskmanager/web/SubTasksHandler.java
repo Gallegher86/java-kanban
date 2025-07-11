@@ -19,11 +19,11 @@ import java.util.stream.Collectors;
 import com.google.gson.JsonSyntaxException;
 import com.yandex.taskmanager.exceptions.NotFoundException;
 
-public class SubTasksHandler extends BaseHttpHandler implements HttpHandler {
+class SubTasksHandler extends BaseHttpHandler implements HttpHandler {
     TaskManager manager;
     Gson gson = GsonAdapters.createGson();
 
-    public SubTasksHandler(TaskManager manager) {
+    SubTasksHandler(TaskManager manager) {
         this.manager = manager;
     }
 
