@@ -12,9 +12,6 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.google.gson.Gson;
 
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-
 import java.io.IOException;
 
 import com.google.gson.JsonSyntaxException;
@@ -96,6 +93,7 @@ public class EpicsHandler extends BaseHttpHandler implements HttpHandler {
         List<TaskDto> dtoList = manager.getEpicSubTasks(id).stream()
                 .map(TaskDto::fromSubTask)
                 .collect(Collectors.toList());
+
         sendText(httpExchange, gson.toJson(dtoList));
     }
 

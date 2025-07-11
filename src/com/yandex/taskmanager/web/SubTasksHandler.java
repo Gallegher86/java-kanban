@@ -10,9 +10,6 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.google.gson.Gson;
 
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -88,6 +85,7 @@ public class SubTasksHandler extends BaseHttpHandler implements HttpHandler {
         List<TaskDto> dtoList = manager.getSubTasks().stream()
                 .map(TaskDto::fromSubTask)
                 .collect(Collectors.toList());
+
         sendText(httpExchange, gson.toJson(dtoList));
     }
 

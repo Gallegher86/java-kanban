@@ -84,6 +84,7 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
         List<TaskDto> dtoList = manager.getTasks().stream()
                 .map(TaskDto::fromTask)
                 .collect(Collectors.toList());
+
         sendText(httpExchange, gson.toJson(dtoList));
     }
 
