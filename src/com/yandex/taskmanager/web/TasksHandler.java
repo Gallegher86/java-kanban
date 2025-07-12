@@ -3,7 +3,6 @@ package com.yandex.taskmanager.web;
 import com.yandex.taskmanager.model.Status;
 import com.yandex.taskmanager.model.Task;
 import com.yandex.taskmanager.service.TaskManager;
-import com.yandex.taskmanager.web.json.GsonAdapters;
 import com.yandex.taskmanager.web.dto.TaskDto;
 
 import com.sun.net.httpserver.HttpExchange;
@@ -19,11 +18,12 @@ import java.util.stream.Collectors;
 import com.yandex.taskmanager.exceptions.NotFoundException;
 
 class TasksHandler extends BaseHttpHandler implements HttpHandler {
-    TaskManager manager;
-    Gson gson = GsonAdapters.createGson();
+    private final TaskManager manager;
+    private final Gson gson;
 
-    TasksHandler(TaskManager manager) {
+    TasksHandler(TaskManager manager, Gson gson) {
         this.manager = manager;
+        this.gson = gson;
     }
 
     @Override

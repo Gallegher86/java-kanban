@@ -3,7 +3,6 @@ package com.yandex.taskmanager.web;
 import com.yandex.taskmanager.model.SubTask;
 import com.yandex.taskmanager.model.Epic;
 import com.yandex.taskmanager.service.TaskManager;
-import com.yandex.taskmanager.web.json.GsonAdapters;
 import com.yandex.taskmanager.web.dto.TaskDto;
 
 import com.sun.net.httpserver.HttpExchange;
@@ -15,11 +14,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 class HistoryHandler extends BaseHttpHandler implements HttpHandler {
-    TaskManager manager;
-    Gson gson = GsonAdapters.createGson();
+    private final TaskManager manager;
+    private final Gson gson;
 
-    HistoryHandler(TaskManager manager) {
+    HistoryHandler(TaskManager manager, Gson gson) {
         this.manager = manager;
+        this.gson = gson;
     }
 
     @Override
