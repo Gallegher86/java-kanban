@@ -16,7 +16,12 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 abstract class TaskManagerTest<T extends TaskManager> {
     protected T manager;
@@ -883,34 +888,24 @@ abstract class TaskManagerTest<T extends TaskManager> {
         subTask2 = new SubTask("ПОДЗАДАЧА1-1", "Описание", 2, now.plusMinutes(10), Duration.ofMinutes(4));
         subTask3 = new SubTask("ПОДЗАДАЧА1-1", "Описание", 3, now.plusMinutes(20), Duration.ofMinutes(9));
 
-        manager.createTask(task1);
-        manager.createEpic(epic1);
-        manager.createEpic(epic2);
-        manager.createSubTask(subTask1);
-        manager.createSubTask(subTask2);
-        manager.createSubTask(subTask3);
-
-        task1 = manager.findAnyTaskById(1).orElseThrow();
-        epic1 = (Epic) manager.findAnyTaskById(2).orElseThrow();
-        epic2 = (Epic) manager.findAnyTaskById(3).orElseThrow();
-        subTask1 = (SubTask) manager.findAnyTaskById(4).orElseThrow();
-        subTask2 = (SubTask) manager.findAnyTaskById(5).orElseThrow();
-        subTask3 = (SubTask) manager.findAnyTaskById(6).orElseThrow();
+        task1 = manager.createTask(task1);
+        epic1 = manager.createEpic(epic1);
+        epic2 = manager.createEpic(epic2);
+        subTask1 = manager.createSubTask(subTask1);
+        subTask2 = manager.createSubTask(subTask2);
+        subTask3 = manager.createSubTask(subTask3);
 
         checkTaskCountForSixTasks(manager);
     }
 
     protected void createThreeTaskListForTests(TaskManager manager) {
-        Task newTask = new Task("ЗАДАЧА", "ОПИСАНИЕ ЗАДАЧИ", now, Duration.ofMinutes(30));
-        Epic newEpic = new Epic("ЭПИК", "ОПИСАНИЕ ЭПИКА");
-        manager.createTask(newTask);
-        manager.createEpic(newEpic);
-        SubTask newSubTask = new SubTask("ПОДЗАДАЧА", "ОПИСАНИЕ ПОДЗАДАЧИ", 2, now.plusHours(1), Duration.ofMinutes(30));
-        manager.createSubTask(newSubTask);
+        task1 = new Task("ЗАДАЧА", "ОПИСАНИЕ ЗАДАЧИ", now, Duration.ofMinutes(30));
+        epic1 = new Epic("ЭПИК", "ОПИСАНИЕ ЭПИКА");
+        subTask1 = new SubTask("ПОДЗАДАЧА", "ОПИСАНИЕ ПОДЗАДАЧИ", 2, now.plusHours(1), Duration.ofMinutes(30));
 
-        task1 = manager.findAnyTaskById(1).orElseThrow();
-        epic1 = (Epic) manager.findAnyTaskById(2).orElseThrow();
-        subTask1 = (SubTask) manager.findAnyTaskById(3).orElseThrow();
+        task1 = manager.createTask(task1);
+        epic1 = manager.createEpic(epic1);
+        subTask1 = manager.createSubTask(subTask1);
 
         checkTaskCountForThreeTasks(manager);
     }

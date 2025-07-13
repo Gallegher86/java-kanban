@@ -92,17 +92,12 @@ class SubTasksHandler extends BaseHttpHandler implements HttpHandler {
     private void createSubTask(HttpExchange httpExchange) throws IOException {
         try {
             TaskDto dtoSubTask = readDto(httpExchange, gson);
-            String name = dtoSubTask.getName();
-            String description = dtoSubTask.getDescription();
-            LocalDateTime startTime = dtoSubTask.getStartTime();
-            Duration duration = dtoSubTask.getDuration();
-            Integer epicId = dtoSubTask.getEpicId();
-            if (epicId == null) {
-                sendInvalidPathFormat(httpExchange, "EpicId is required.");
+            if (dtoSubTask == null) {
+                sendInvalidPathFormat(httpExchange, "Empty or malformed JSON, can't create Subtask.");
                 return;
             }
 
-            SubTask newSubTask = manager.createSubTask(new SubTask(name, description, epicId, startTime, duration));
+            SubTask newSubTask = manager.createSubTask(TaskDto.toNewSubTask(dtoSubTask));
             String jsonResponse = gson.toJson(TaskDto.fromSubTask(newSubTask));
             sendCreated(httpExchange, jsonResponse);
         } catch (IllegalArgumentException ex) {

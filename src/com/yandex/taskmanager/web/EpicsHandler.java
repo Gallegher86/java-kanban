@@ -100,10 +100,12 @@ class EpicsHandler extends BaseHttpHandler implements HttpHandler {
     private void createEpic(HttpExchange httpExchange) throws IOException {
         try {
             TaskDto dtoEpic = readDto(httpExchange, gson);
-            String name = dtoEpic.getName();
-            String description = dtoEpic.getDescription();
+            if (dtoEpic == null) {
+                sendInvalidPathFormat(httpExchange, "Empty or malformed JSON, can't create Epic.");
+                return;
+            }
 
-            Epic newEpic = manager.createEpic(new Epic(name, description));
+            Epic newEpic = manager.createEpic(TaskDto.toNewEpic(dtoEpic));
             String jsonResponse = gson.toJson(TaskDto.fromEpic(newEpic));
             sendCreated(httpExchange, jsonResponse);
         } catch (IllegalArgumentException ex) {

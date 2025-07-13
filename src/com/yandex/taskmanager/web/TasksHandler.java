@@ -91,12 +91,12 @@ class TasksHandler extends BaseHttpHandler implements HttpHandler {
     private void createTask(HttpExchange httpExchange) throws IOException {
         try {
             TaskDto dtoTask = readDto(httpExchange, gson);
-            String name = dtoTask.getName();
-            String description = dtoTask.getDescription();
-            LocalDateTime startTime = dtoTask.getStartTime();
-            Duration duration = dtoTask.getDuration();
+            if (dtoTask == null) {
+                sendInvalidPathFormat(httpExchange, "Empty or malformed JSON, can't create Task.");
+                return;
+            }
 
-            Task newTask = manager.createTask(new Task(name, description, startTime, duration));
+            Task newTask = manager.createTask(TaskDto.toNewTask(dtoTask));
             String jsonResponse = gson.toJson(TaskDto.fromTask(newTask));
             sendCreated(httpExchange, jsonResponse);
         } catch (IllegalArgumentException ex) {
