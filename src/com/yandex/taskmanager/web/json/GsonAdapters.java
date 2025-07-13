@@ -13,6 +13,7 @@ import java.time.Duration;
 import java.time.format.DateTimeFormatter;
 
 import com.google.gson.JsonSyntaxException;
+
 import java.time.format.DateTimeParseException;
 
 public class GsonAdapters {

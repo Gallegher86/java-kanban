@@ -4,7 +4,6 @@ import com.yandex.taskmanager.model.Epic;
 import com.yandex.taskmanager.model.SubTask;
 import com.yandex.taskmanager.model.Task;
 import com.yandex.taskmanager.service.TaskManager;
-import com.yandex.taskmanager.web.json.GsonAdapters;
 import com.yandex.taskmanager.web.dto.TaskDto;
 
 import com.sun.net.httpserver.HttpExchange;

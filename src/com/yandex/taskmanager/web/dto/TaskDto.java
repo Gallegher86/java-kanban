@@ -89,6 +89,50 @@ public class TaskDto {
         return new SubTask(name, description, epicId, startTime, duration);
     }
 
+    public static Task toTask(TaskDto taskDto) {
+        int id = taskDto.getId();
+        String name = taskDto.getName();
+        String description = taskDto.getDescription();
+        Status status = taskDto.getStatus();
+        LocalDateTime startTime = taskDto.getStartTime();
+        Duration duration = taskDto.getDuration();
+        return new Task(id, name, description, status, startTime, duration);
+    }
+
+    public static SubTask toSubTask(TaskDto taskDto) {
+        if (taskDto.getEpicId() == null) {
+            throw new IllegalArgumentException("'epicId' is required to create SubTask.");
+        }
+
+        int id = taskDto.getId();
+        String name = taskDto.getName();
+        String description = taskDto.getDescription();
+        int epicId = taskDto.getEpicId();
+        Status status = taskDto.getStatus();
+        LocalDateTime startTime = taskDto.getStartTime();
+        Duration duration = taskDto.getDuration();
+        return new SubTask(id, name, description, status, epicId, startTime, duration);
+    }
+
+    public static Epic toEpic(TaskDto taskDto) {
+        int id = taskDto.getId();
+        String name = taskDto.getName();
+        String description = taskDto.getDescription();
+        Status status = taskDto.getStatus();
+        LocalDateTime startTime = taskDto.getStartTime();
+        Duration duration = taskDto.getDuration();
+        LocalDateTime endTime = taskDto.getEndTime();
+
+        Epic epic = new Epic(id, name, description);
+        epic.setStatus(status);
+        epic.setEpicTime(startTime, duration, endTime);
+        return epic;
+    }
+
+    public TaskType getTaskType() {
+        return taskType;
+    }
+
     public int getId() {
         return id;
     }
@@ -115,5 +159,9 @@ public class TaskDto {
 
     public Duration getDuration() {
         return duration;
+    }
+
+    public LocalDateTime getEndTime() {
+        return endTime;
     }
 }
