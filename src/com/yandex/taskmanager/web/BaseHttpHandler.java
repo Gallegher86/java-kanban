@@ -55,11 +55,12 @@ class BaseHttpHandler {
         }
     }
 
-    protected Integer parseId(String[] parts) {
+    protected Integer parseId(String path) {
         try {
+            String[] parts = path.split("/");
             return Integer.parseInt(parts[2]);
-        } catch (NumberFormatException ex) {
-            throw new IllegalArgumentException("Invalid id format.");
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid path or ID format");
         }
     }
 

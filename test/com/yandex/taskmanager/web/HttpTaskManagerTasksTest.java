@@ -72,7 +72,7 @@ public class HttpTaskManagerTasksTest {
         createSevenTaskList(manager);
         List<Task> tasksInManager = manager.getTasks();
 
-        HttpResponse<String> response = sendRequest("GET", "/tasks", "");
+        HttpResponse<String> response = sendRequest("GET", "/tasks/", "");
         assertEquals(200, response.statusCode(), "Сервер должен возвращать код 200.");
         List<TaskDto> taskDto = gson.fromJson(response.body(), TASK_DTO_LIST_TYPE);
         List<Task> tasksFromResponse = taskDto.stream()

@@ -26,12 +26,12 @@ class PrioritizedHandler extends BaseHttpHandler implements HttpHandler {
     public void handle(HttpExchange httpExchange) throws IOException {
         try {
             String method = httpExchange.getRequestMethod();
-            String path = httpExchange.getRequestURI().getPath();
-            String[] parts = path.split("/");
+            String rawPath = httpExchange.getRequestURI().getPath();
+            String path = rawPath.replaceAll("/+$", "");
 
             switch (method) {
                 case "GET":
-                    if (parts.length == 2) {
+                    if (path.matches("^/prioritized$")) {
                         sendPrioritizedTasks(httpExchange);
                     } else {
                         sendInvalidPathFormat(httpExchange, "Bad request: wrong path format");

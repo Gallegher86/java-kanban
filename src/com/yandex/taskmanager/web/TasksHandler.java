@@ -30,15 +30,15 @@ class TasksHandler extends BaseHttpHandler implements HttpHandler {
     public void handle(HttpExchange httpExchange) throws IOException {
         try {
             String method = httpExchange.getRequestMethod();
-            String path = httpExchange.getRequestURI().getPath();
-            String[] parts = path.split("/");
+            String rawPath = httpExchange.getRequestURI().getPath();
+            String path = rawPath.replaceAll("/+$", "");
 
             switch (method) {
                 case "GET":
-                    if (parts.length == 2) {
+                    if (path.matches("^/tasks$")) {
                         sendTasks(httpExchange);
-                    } else if (parts.length == 3) {
-                        int id = parseId(parts);
+                    } else if (path.matches("^/tasks/\\d+$")) {
+                        int id = parseId(path);
                         Task task = manager.getTaskById(id);
                         sendText(httpExchange, gson.toJson(TaskDto.fromTask(task)));
                     } else {
@@ -46,18 +46,18 @@ class TasksHandler extends BaseHttpHandler implements HttpHandler {
                     }
                     break;
                 case "POST":
-                    if (parts.length == 2) {
+                    if (path.matches("^/tasks$")) {
                         createTask(httpExchange);
-                    } else if (parts.length == 3) {
-                        int id = parseId(parts);
+                    } else if (path.matches("^/tasks/\\d+$")) {
+                        int id = parseId(path);
                         updateTask(httpExchange, id);
                     } else {
                         sendInvalidPathFormat(httpExchange, "Bad request: wrong path format");
                     }
                     break;
                 case "DELETE":
-                    if (parts.length == 3) {
-                        int id = parseId(parts);
+                    if (path.matches("^/tasks/\\d+$")) {
+                        int id = parseId(path);
                         manager.deleteTask(id);
                         sendOk(httpExchange, "Task with id: " + id + " deleted.");
                     } else {

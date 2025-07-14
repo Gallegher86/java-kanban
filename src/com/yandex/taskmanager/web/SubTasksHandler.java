@@ -31,15 +31,15 @@ class SubTasksHandler extends BaseHttpHandler implements HttpHandler {
     public void handle(HttpExchange httpExchange) throws IOException {
         try {
             String method = httpExchange.getRequestMethod();
-            String path = httpExchange.getRequestURI().getPath();
-            String[] parts = path.split("/");
+            String rawPath = httpExchange.getRequestURI().getPath();
+            String path = rawPath.replaceAll("/+$", "");
 
             switch (method) {
                 case "GET":
-                    if (parts.length == 2) {
+                    if (path.matches("^/subtasks$")) {
                         sendSubTasks(httpExchange);
-                    } else if (parts.length == 3) {
-                        int id = parseId(parts);
+                    } else if (path.matches("^/subtasks/\\d+$")) {
+                        int id = parseId(path);
                         SubTask subTask = manager.getSubTaskById(id);
                         sendText(httpExchange, gson.toJson(TaskDto.fromSubTask(subTask)));
                     } else {
@@ -47,18 +47,18 @@ class SubTasksHandler extends BaseHttpHandler implements HttpHandler {
                     }
                     break;
                 case "POST":
-                    if (parts.length == 2) {
+                    if (path.matches("^/subtasks$")) {
                         createSubTask(httpExchange);
-                    } else if (parts.length == 3) {
-                        int id = parseId(parts);
+                    } else if (path.matches("^/subtasks/\\d+$")) {
+                        int id = parseId(path);
                         updateSubTask(httpExchange, id);
                     } else {
                         sendInvalidPathFormat(httpExchange, "Bad request: wrong path format");
                     }
                     break;
                 case "DELETE":
-                    if (parts.length == 3) {
-                        int id = parseId(parts);
+                    if (path.matches("^/subtasks/\\d+$")) {
+                        int id = parseId(path);
                         manager.deleteSubTask(id);
                         sendOk(httpExchange, "SubTask with id: " + id + " deleted.");
                     } else {

@@ -29,37 +29,37 @@ class EpicsHandler extends BaseHttpHandler implements HttpHandler {
     public void handle(HttpExchange httpExchange) throws IOException {
         try {
             String method = httpExchange.getRequestMethod();
-            String path = httpExchange.getRequestURI().getPath();
-            String[] parts = path.split("/");
+            String rawPath = httpExchange.getRequestURI().getPath();
+            String path = rawPath.replaceAll("/+$", "");
 
             switch (method) {
                 case "GET":
-                    if (parts.length == 2) {
+                    if (path.matches("^/epics$")) {
                         sendEpics(httpExchange);
-                    } else if (parts.length == 3) {
-                        int id = parseId(parts);
+                    } else if (path.matches("^/epics/\\d+$")) {
+                        int id = parseId(path);
                         Epic epic = manager.getEpicById(id);
                         sendText(httpExchange, gson.toJson(TaskDto.fromEpic(epic)));
-                    } else if (parts.length == 4 && parts[3].equals("subtasks")) {
-                        int id = parseId(parts);
+                    } else if (path.matches("^/epics/\\d+/subtasks$")) {
+                        int id = parseId(path);
                         sendSubTasks(httpExchange, id);
                     } else {
                         sendInvalidPathFormat(httpExchange, "Bad request: wrong path format");
                     }
                     break;
                 case "POST":
-                    if (parts.length == 2) {
+                    if (path.matches("^/epics$")) {
                         createEpic(httpExchange);
-                    } else if (parts.length == 3) {
-                        int id = parseId(parts);
+                    } else if (path.matches("^/epics/\\d+$")) {
+                        int id = parseId(path);
                         updateEpic(httpExchange, id);
                     } else {
                         sendInvalidPathFormat(httpExchange, "Bad request: wrong path format");
                     }
                     break;
                 case "DELETE":
-                    if (parts.length == 3) {
-                        int id = parseId(parts);
+                    if (path.matches("^/epics/\\d+$")) {
+                        int id = parseId(path);
                         manager.deleteEpic(id);
                         sendOk(httpExchange, "Epic with id: " + id + " deleted.");
                     } else {
