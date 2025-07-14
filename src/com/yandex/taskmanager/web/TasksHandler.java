@@ -107,13 +107,7 @@ class TasksHandler extends BaseHttpHandler implements HttpHandler {
     private void updateTask(HttpExchange httpExchange, int id) throws IOException {
         try {
             TaskDto dtoTask = readDto(httpExchange, gson);
-            String name = dtoTask.getName();
-            String description = dtoTask.getDescription();
-            Status status = dtoTask.getStatus();
-            LocalDateTime startTime = dtoTask.getStartTime();
-            Duration duration = dtoTask.getDuration();
-
-            Task taskToUpdate = new Task(id, name, description, status, startTime, duration);
+            Task taskToUpdate = TaskDto.toTask(dtoTask);
             manager.updateTask(taskToUpdate);
             sendOk(httpExchange, "Task with id: " + id + " updated.");
         } catch (IllegalArgumentException ex) {

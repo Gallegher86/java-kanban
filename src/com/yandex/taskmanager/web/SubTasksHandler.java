@@ -110,15 +110,7 @@ class SubTasksHandler extends BaseHttpHandler implements HttpHandler {
     private void updateSubTask(HttpExchange httpExchange, int id) throws IOException {
         try {
             TaskDto dtoSubTask = readDto(httpExchange, gson);
-            String name = dtoSubTask.getName();
-            String description = dtoSubTask.getDescription();
-            Status status = dtoSubTask.getStatus();
-            LocalDateTime startTime = dtoSubTask.getStartTime();
-            Duration duration = dtoSubTask.getDuration();
-
-            SubTask subTaskInManager = manager.getSubTaskById(id);
-            int epicId = subTaskInManager.getEpicId();
-            SubTask subTaskToUpdate = new SubTask(id, name, description, status, epicId, startTime, duration);
+            SubTask subTaskToUpdate = TaskDto.toSubTask(dtoSubTask);
             manager.updateSubTask(subTaskToUpdate);
             sendOk(httpExchange, "SubTask with id: " + id + " updated.");
         } catch (IllegalArgumentException ex) {
