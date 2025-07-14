@@ -118,6 +118,11 @@ class EpicsHandler extends BaseHttpHandler implements HttpHandler {
     private void updateEpic(HttpExchange httpExchange, int id) throws IOException {
         try {
             TaskDto dtoEpic = readDto(httpExchange, gson);
+            if (dtoEpic == null) {
+                sendInvalidPathFormat(httpExchange, "Empty or malformed JSON, can't update Epic.");
+                return;
+            }
+
             String name = dtoEpic.getName();
             String description = dtoEpic.getDescription();
 

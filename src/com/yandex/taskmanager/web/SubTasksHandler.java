@@ -110,6 +110,11 @@ class SubTasksHandler extends BaseHttpHandler implements HttpHandler {
     private void updateSubTask(HttpExchange httpExchange, int id) throws IOException {
         try {
             TaskDto dtoSubTask = readDto(httpExchange, gson);
+            if (dtoSubTask == null) {
+                sendInvalidPathFormat(httpExchange, "Empty or malformed JSON, can't update Subtask.");
+                return;
+            }
+
             SubTask subTaskToUpdate = TaskDto.toSubTask(dtoSubTask);
             manager.updateSubTask(subTaskToUpdate);
             sendOk(httpExchange, "SubTask with id: " + id + " updated.");

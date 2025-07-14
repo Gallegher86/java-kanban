@@ -107,6 +107,11 @@ class TasksHandler extends BaseHttpHandler implements HttpHandler {
     private void updateTask(HttpExchange httpExchange, int id) throws IOException {
         try {
             TaskDto dtoTask = readDto(httpExchange, gson);
+            if (dtoTask == null) {
+                sendInvalidPathFormat(httpExchange, "Empty or malformed JSON, can't update Task.");
+                return;
+            }
+
             Task taskToUpdate = TaskDto.toTask(dtoTask);
             manager.updateTask(taskToUpdate);
             sendOk(httpExchange, "Task with id: " + id + " updated.");
