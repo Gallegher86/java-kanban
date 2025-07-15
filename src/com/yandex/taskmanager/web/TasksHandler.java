@@ -112,7 +112,7 @@ class TasksHandler extends BaseHttpHandler implements HttpHandler {
                 return;
             }
 
-            Task taskToUpdate = TaskDto.toTask(dtoTask);
+            Task taskToUpdate = TaskDto.toTaskWithId(dtoTask, id);
             manager.updateTask(taskToUpdate);
             sendOk(httpExchange, "Task with id: " + id + " updated.");
         } catch (IllegalArgumentException ex) {

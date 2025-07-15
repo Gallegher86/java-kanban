@@ -129,6 +129,29 @@ public class TaskDto {
         return epic;
     }
 
+    public static Task toTaskWithId(TaskDto taskDto, int id) {
+        String name = taskDto.getName();
+        String description = taskDto.getDescription();
+        Status status = taskDto.getStatus();
+        LocalDateTime startTime = taskDto.getStartTime();
+        Duration duration = taskDto.getDuration();
+        return new Task(id, name, description, status, startTime, duration);
+    }
+
+    public static SubTask toSubTaskWithId(TaskDto taskDto, int id) {
+        if (taskDto.getEpicId() == null) {
+            throw new IllegalArgumentException("'epicId' is required to create SubTask.");
+        }
+
+        String name = taskDto.getName();
+        String description = taskDto.getDescription();
+        int epicId = taskDto.getEpicId();
+        Status status = taskDto.getStatus();
+        LocalDateTime startTime = taskDto.getStartTime();
+        Duration duration = taskDto.getDuration();
+        return new SubTask(id, name, description, status, epicId, startTime, duration);
+    }
+
     public TaskType getTaskType() {
         return taskType;
     }

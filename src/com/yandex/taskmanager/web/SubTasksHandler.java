@@ -115,7 +115,7 @@ class SubTasksHandler extends BaseHttpHandler implements HttpHandler {
                 return;
             }
 
-            SubTask subTaskToUpdate = TaskDto.toSubTask(dtoSubTask);
+            SubTask subTaskToUpdate = TaskDto.toSubTaskWithId(dtoSubTask, id);
             manager.updateSubTask(subTaskToUpdate);
             sendOk(httpExchange, "SubTask with id: " + id + " updated.");
         } catch (IllegalArgumentException ex) {
