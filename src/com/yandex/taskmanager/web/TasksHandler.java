@@ -1,6 +1,5 @@
 package com.yandex.taskmanager.web;
 
-import com.yandex.taskmanager.model.Status;
 import com.yandex.taskmanager.model.Task;
 import com.yandex.taskmanager.service.TaskManager;
 import com.yandex.taskmanager.web.dto.TaskDto;
@@ -10,8 +9,6 @@ import com.sun.net.httpserver.HttpHandler;
 import com.google.gson.Gson;
 
 import java.io.IOException;
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
