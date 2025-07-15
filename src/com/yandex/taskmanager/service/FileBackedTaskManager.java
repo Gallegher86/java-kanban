@@ -41,21 +41,24 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
     }
 
     @Override
-    public void addTask(Task task) {
-        super.addTask(task);
+    public Task createTask(Task task) {
+        Task newTask = super.createTask(task);
         save();
+        return newTask;
     }
 
     @Override
-    public void addEpic(Epic epic) {
-        super.addEpic(epic);
+    public Epic createEpic(Epic epic) {
+        Epic newEpic = super.createEpic(epic);
         save();
+        return newEpic;
     }
 
     @Override
-    public void addSubTask(SubTask subTask) {
-        super.addSubTask(subTask);
+    public SubTask createSubTask(SubTask subTask) {
+        SubTask newSubTask = super.createSubTask(subTask);
         save();
+        return newSubTask;
     }
 
     @Override
@@ -65,8 +68,26 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
     }
 
     @Override
-    public void deleteTaskById(int id) {
-        super.deleteTaskById(id);
+    public void deleteAnyTaskById(int id) {
+        super.deleteAnyTaskById(id);
+        save();
+    }
+
+    @Override
+    public void deleteTask(int id) {
+        super.deleteTask(id);
+        save();
+    }
+
+    @Override
+    public void deleteEpic(int id) {
+        super.deleteEpic(id);
+        save();
+    }
+
+    @Override
+    public void deleteSubTask(int id) {
+        super.deleteSubTask(id);
         save();
     }
 
@@ -225,14 +246,14 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
         SubTask testSubTask3 = new SubTask("SubTask3", "Description subTask3", 3, now.plusMinutes(49), Duration.ofMinutes(15));
         SubTask testSubTask4 = new SubTask("SubTask4", "Description subTask4", 4);
 
-        manager.addTask(testTask1);
-        manager.addTask(testTask2);
-        manager.addEpic(testEpic1);
-        manager.addEpic(testEpic2);
-        manager.addSubTask(testSubTask1);
-        manager.addSubTask(testSubTask2);
-        manager.addSubTask(testSubTask3);
-        manager.addSubTask(testSubTask4);
+        manager.createTask(testTask1);
+        manager.createTask(testTask2);
+        manager.createEpic(testEpic1);
+        manager.createEpic(testEpic2);
+        manager.createSubTask(testSubTask1);
+        manager.createSubTask(testSubTask2);
+        manager.createSubTask(testSubTask3);
+        manager.createSubTask(testSubTask4);
 
         System.out.println(manager.getAllTasks());
 
