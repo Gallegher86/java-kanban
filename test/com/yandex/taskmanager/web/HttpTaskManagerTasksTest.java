@@ -435,7 +435,6 @@ public class HttpTaskManagerTasksTest {
     }
 
     //ТЕСТЫ /all
-
     @Test
     public void getAllTasksWorksCorrectly() throws IOException, InterruptedException {
         createSevenTaskList(manager);
@@ -509,6 +508,119 @@ public class HttpTaskManagerTasksTest {
         HttpResponse<String> response = sendRequest("GET", "/all/999", "");
         assertEquals(404, response.statusCode(), "Сервер должен возвращать код 404.");
         assertTrue(response.body().contains("not found"), "Тело ответа должно содержать 'not found'.");
+    }
+
+    @Test
+    public void createAnyTaskWorksCorrectly() throws IOException, InterruptedException {
+        HttpResponse<String> response;
+        task1 = new Task("НОВАЯ ЗАДАЧА", "ОПИСАНИЕ ЗАДАЧИ", now, Duration.ofMinutes(15));
+        epic1 = new Epic("НОВЫЙ ЭПИК", "ОПИСАНИЕ ЭПИКА");
+        subTask1 = new SubTask("НОВАЯ ПОДЗАДАЧА", "ОПИСАНИЕ ПОДЗАДАЧИ", 2,
+                now.plusMinutes(15), Duration.ofMinutes(15));
+
+        Task taskToCheck = new Task(1, "НОВАЯ ЗАДАЧА", "ОПИСАНИЕ ЗАДАЧИ", now, Duration.ofMinutes(15));
+        Epic epicToCheck = new Epic(2, "НОВЫЙ ЭПИК", "ОПИСАНИЕ ЭПИКА");
+        SubTask subTaskToCheck = new SubTask(3, "НОВАЯ ПОДЗАДАЧА", "ОПИСАНИЕ ПОДЗАДАЧИ", 2,
+                now.plusMinutes(15), Duration.ofMinutes(15));
+
+        String taskJson = gson.toJson(TaskDto.fromTask(task1));
+        String epicJson = gson.toJson(TaskDto.fromEpic(epic1));
+        String subTaskJson = gson.toJson(TaskDto.fromSubTask(subTask1));
+
+        response = sendRequest("POST", "/all", taskJson);
+        assertEquals(201, response.statusCode(), "Сервер должен возвращать код 201.");
+        TaskDto taskDto = gson.fromJson(response.body(), TaskDto.class);
+        Task returnedTask = TaskDto.toTask(taskDto);
+
+        List<Task> tasksFromManager = manager.getTasks();
+
+        assertNotNull(tasksFromManager, "Задачи не возвращаются");
+        assertEquals(1, tasksFromManager.size(), "Некорректное количество задач");
+        checkTasksUnchangedCustom(tasksFromManager, List.of(taskToCheck));
+        checkTasksUnchangedCustom(tasksFromManager, List.of(returnedTask));
+
+        response = sendRequest("POST", "/all", epicJson);
+        assertEquals(201, response.statusCode(), "Сервер должен возвращать код 201.");
+        TaskDto epicDto = gson.fromJson(response.body(), TaskDto.class);
+        Task returnedEpic = TaskDto.toEpic(epicDto);
+
+        List<Epic> epicsFromManager = manager.getEpics();
+
+        assertNotNull(epicsFromManager, "Эпики не возвращаются");
+        assertEquals(1, epicsFromManager.size(), "Некорректное количество эпиков");
+        checkTasksUnchangedCustom(epicsFromManager, List.of(epicToCheck));
+        checkTasksUnchangedCustom(epicsFromManager, List.of(returnedEpic));
+
+        response = sendRequest("POST", "/all", subTaskJson);
+        assertEquals(201, response.statusCode(), "Сервер должен возвращать код 201.");
+        TaskDto subTaskDto = gson.fromJson(response.body(), TaskDto.class);
+        Task returnedSubTask = TaskDto.toSubTask(subTaskDto);
+
+        List<SubTask> subTasksFromManager = manager.getSubTasks();
+
+        assertNotNull(subTasksFromManager, "Подзадачи не возвращаются");
+        assertEquals(1, subTasksFromManager.size(), "Некорректное количество подзадач");
+        checkTasksUnchangedCustom(subTasksFromManager, List.of(subTaskToCheck));
+        checkTasksUnchangedCustom(subTasksFromManager, List.of(returnedSubTask));
+    }
+
+    @Test
+    public void updateAnyTaskWorksCorrectly() throws IOException, InterruptedException {
+        HttpResponse<String> response;
+        createThreeTaskListForTests(manager);
+
+        task1 = new Task(1, "ОБНОВЛЕННАЯ ЗАДАЧА", "ОПИСАНИЕ ЗАДАЧИ ИЗМЕНЕНО", Status.DONE,
+                now.plusMinutes(10), Duration.ofMinutes(45));
+        subTask1 = new SubTask(3, "ОБНОВЛЕННАЯ ПОДЗАДАЧА", "ОПИСАНИЕ ПОДЗАДАЧИ ИЗМЕНЕНО", Status.DONE,
+                2, now.plusMinutes(60), Duration.ofMinutes(45));
+        epic1 = new Epic(2, "ОБНОВЛЕННЫЙ ЭПИК", "ОПИСАНИЕ ЭПИКА ИЗМЕНЕНО");
+
+        String taskJson = gson.toJson(TaskDto.fromTask(task1));
+        String subTaskJson = gson.toJson(TaskDto.fromSubTask(subTask1));
+        String epicJson = gson.toJson(TaskDto.fromEpic(epic1));
+
+        response = sendRequest("POST", "/all/1", taskJson);
+        assertEquals(200, response.statusCode(), "Сервер должен возвращать код 200.");
+        response = sendRequest("POST", "/all/3", subTaskJson);
+        assertEquals(200, response.statusCode(), "Сервер должен возвращать код 200.");
+        response = sendRequest("POST", "/all/2", epicJson);
+        assertEquals(200, response.statusCode(), "Сервер должен возвращать код 200.");
+
+        epic1.setStatus(Status.DONE);
+        epic1.setEpicTime(subTask1.getStartTime(), subTask1.getDuration(), subTask1.getEndTime());
+
+        checkTasksUnchangedCustom(manager.getAllTasks(), List.of(task1, epic1, subTask1));
+    }
+
+    @Test
+    public void createAnyTaskSendsHasInteractionsIfTaskIntervalIsOccupied() throws IOException, InterruptedException {
+        HttpResponse<String> response;
+
+        epic1 = manager.createEpic(new Epic("ЭПИК", "Описание"));
+        subTask1 = manager.createSubTask(new SubTask("НОВАЯ ПОДЗАДАЧА", "ОПИСАНИЕ", 1,
+                now, Duration.ofMinutes(15)));
+        subTask2 = new SubTask("ПОДЗАДАЧА С ТЕМ ЖЕ ВРЕМЕНЕМ", "ДРУГОЕ ОПИСАНИЕ", 1,
+                now, Duration.ofMinutes(15));
+        task1 = manager.createTask(new Task("НОВАЯ ЗАДАЧА", "ОПИСАНИЕ ЗАДАЧИ",
+                now.plusMinutes(60), Duration.ofMinutes(15)));
+        task2 = new Task("ЗАДАЧА С ТЕМ ЖЕ ВРЕМЕНЕМ", "НОВОЕ ОПИСАНИЕ ЗАДАЧИ",
+                now.plusMinutes(60), Duration.ofMinutes(15));
+
+        String subTaskJson = gson.toJson(TaskDto.fromSubTask(subTask2));
+        String taskJson = gson.toJson(TaskDto.fromTask(task2));
+
+        response = sendRequest("POST", "/all", subTaskJson);
+        assertEquals(406, response.statusCode(), "Сервер должен возвращать код 406.");
+        assertTrue(response.body().contains("interval is occupied"),
+                "Тело ответа должно содержать 'interval is occupied'.");
+
+        response = sendRequest("POST", "/all", taskJson);
+        assertEquals(406, response.statusCode(), "Сервер должен возвращать код 406.");
+        assertTrue(response.body().contains("interval is occupied"),
+                "Тело ответа должно содержать 'interval is occupied'.");
+
+        checkTaskCountCustom(manager, 1, 1, 1, 3);
+        checkTasksUnchangedCustom(manager.getAllTasks(), List.of(task1, epic1, subTask1));
     }
 
     //ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ
