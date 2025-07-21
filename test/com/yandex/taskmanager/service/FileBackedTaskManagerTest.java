@@ -94,8 +94,8 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
 
         createSixTaskListForTests(manager);
 
-        manager.deleteTaskById(1);
-        manager.deleteTaskById(2);
+        manager.deleteAnyTaskById(1);
+        manager.deleteAnyTaskById(2);
 
         FileBackedTaskManager newManager = FileBackedTaskManager.loadFromFile(tempFile);
 

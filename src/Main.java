@@ -13,8 +13,6 @@ import java.util.Optional;
 
 public class Main {
     public static void main(String[] args) {
-        //Тест
-
         TaskManager manager = Managers.getDefaultTaskManager();
         Scanner scanner = new Scanner(System.in);
 
@@ -28,34 +26,34 @@ public class Main {
         SubTask testSubTask3 = new SubTask("Phase 3", "PROFIT!", 3);
         SubTask testSubTask4 = new SubTask("Make nanoSoft", "small PROFIT", 4);
 
-        manager.addTask(testTask1);
-        manager.addTask(testTask2);
-        manager.addEpic(testEpic1);
-        manager.addEpic(testEpic2);
-        manager.addSubTask(testSubTask1);
-        manager.addSubTask(testSubTask2);
-        manager.addSubTask(testSubTask3);
-        manager.addSubTask(testSubTask4);
+        manager.createTask(testTask1);
+        manager.createTask(testTask2);
+        manager.createEpic(testEpic1);
+        manager.createEpic(testEpic2);
+        manager.createSubTask(testSubTask1);
+        manager.createSubTask(testSubTask2);
+        manager.createSubTask(testSubTask3);
+        manager.createSubTask(testSubTask4);
 
         for (int i = 1; i < 9; i++) {
-            manager.getTaskById(i);
+            manager.findAnyTaskById(i);
         }
         System.out.println(getIds(manager.getHistory()));
 
         for (int i = 8; i > 0; i--) {
-            manager.getTaskById(i);
+            manager.findAnyTaskById(i);
         }
         System.out.println(getIds(manager.getHistory()));
 
-        manager.getTaskById(7);
-        manager.getTaskById(6);
-        manager.getTaskById(5);
+        manager.findAnyTaskById(7);
+        manager.findAnyTaskById(6);
+        manager.findAnyTaskById(5);
         System.out.println(getIds(manager.getHistory()));
 
-        manager.deleteTaskById(1);
+        manager.deleteAnyTaskById(1);
         System.out.println(getIds(manager.getHistory()));
 
-        manager.deleteTaskById(3);
+        manager.deleteAnyTaskById(3);
         System.out.println(getIds(manager.getHistory()));
 
         runMainMenu(manager, scanner);
@@ -150,7 +148,7 @@ public class Main {
                     int deleteId = scanner.nextInt();
                     scanner.nextLine();
                     try {
-                        manager.deleteTaskById(deleteId);
+                        manager.deleteAnyTaskById(deleteId);
                         System.out.println("Задача удалена.");
                     } catch (IllegalArgumentException ex) {
                         System.out.println(ex.getMessage());
@@ -183,19 +181,19 @@ public class Main {
             String command = scanner.nextLine();
             switch (command) {
                 case "1": {
-                    manager.addTask(makeNewTask(scanner));
+                    manager.createTask(makeNewTask(scanner));
                     System.out.println("Задача создана и добавлена в менеджер.");
                     break;
                 }
                 case "2": {
-                    manager.addEpic(makeNewEpic(scanner));
+                    manager.createEpic(makeNewEpic(scanner));
                     System.out.println("Эпик создан и добавлен в менеджер.");
                     break;
                 }
                 case "3": {
                     try {
                         printTaskInfo(manager.getEpics());
-                        manager.addSubTask(makeNewSubTask(scanner));
+                        manager.createSubTask(makeNewSubTask(scanner));
                         System.out.println("Подзадача создана и добавлена в менеджер.");
                     } catch (IllegalArgumentException ex) {
                         System.out.println("Ошибка при создании подзадачи: " + ex.getMessage());
@@ -293,7 +291,7 @@ public class Main {
                     System.out.print("Введите идентификатор задачи: ");
                     int id = scanner.nextInt();
                     scanner.nextLine();
-                    Optional<Task> task = manager.getTaskById(id);
+                    Optional<Task> task = manager.findAnyTaskById(id);
                     if (task.isPresent()) {
                         System.out.println(task.get());
                     } else {

@@ -9,11 +9,11 @@ import java.util.Optional;
 import java.util.TreeSet;
 
 public interface TaskManager {
-    void addTask(Task task);
+    Task createTask(Task task);
 
-    void addEpic(Epic epic);
+    Epic createEpic(Epic epic);
 
-    void addSubTask(SubTask subTask);
+    SubTask createSubTask(SubTask subTask);
 
     List<Task> getAllTasks();
 
@@ -31,11 +31,23 @@ public interface TaskManager {
 
     void deleteAllTasks();
 
-    Optional<Task> getTaskById(int id);
+    Optional<Task> findAnyTaskById(int id);
+
+    Task getTaskById(int id);
+
+    Epic getEpicById(int id);
+
+    SubTask getSubTaskById(int id);
 
     List<SubTask> getEpicSubTasks(int id);
 
-    void deleteTaskById(int id);
+    void deleteAnyTaskById(int id);
+
+    void deleteTask(int id);
+
+    void deleteEpic(int id);
+
+    void deleteSubTask(int id);
 
     void updateTask(Task newTask);
 
